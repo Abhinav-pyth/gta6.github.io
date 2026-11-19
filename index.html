@@ -1,0 +1,1644 @@
+/* ============================================================================
+   VICE CITY PULSE — The Ultimate GTA VI Information & Viral Hub
+   Single-file React SPA (App.jsx) · Static · GitHub Pages ready
+   ----------------------------------------------------------------------------
+   DEPLOYMENT NOTES (GitHub Pages):
+   · This file is the entire application. Mount it in a Vite React project:
+       npm create vite@latest vice-city-pulse -- --template react
+       replace src/App.jsx with this file, remove src/App.css usage.
+   · vite.config.ts → for repo sites use:  export default { base: '/REPO_NAME/' }
+     for user/org sites (USERNAME.github.io) use: base: '/'
+     A relative-safe alternative that works for BOTH:  base: './'
+   · public/robots.txt  →  User-agent: *  Allow: /  Sitemap: <canonicalBase>sitemap.xml
+   · public/sitemap.xml →  single <url> entry pointing at your canonicalBase.
+   · After deploying, update CONFIG.canonicalBase below (SEO canonical + OG url).
+   · Content lives in the DATA objects at the top of this file (see guide comments).
+   ============================================================================ */
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+/* ============================== CONFIG ==================================== */
+const CONFIG = {
+  siteName: "VICE CITY PULSE",
+  tagline: "THE ULTIMATE GTA VI FAN HUB",
+  // ⚠️ UPDATE AFTER DEPLOY: e.g. "https://username.github.io/vice-city-pulse/"
+  canonicalBase: "https://USERNAME.github.io/REPO/",
+  releaseDate: "2026-11-19", // central, configurable release date (local time)
+};
+
+/* ============================== DATA ====================================== */
+const GAME = {
+  title: "Grand Theft Auto VI",
+  developer: "Rockstar Games",
+  publisher: "Rockstar Games",
+  releaseDate: CONFIG.releaseDate,
+  platforms: ["PlayStation 5", "Xbox Series X|S"],
+  setting: "Leonida, United States",
+  majorLocation: "Vice City",
+  protagonists: ["Jason Duval", "Lucia Caminos"],
+  genre: "Open-world action-adventure",
+  premise:
+    "Grand Theft Auto VI heads to the state of Leonida, home to the neon-soaked streets of Vice City and beyond. The story follows Lucia Caminos and Jason Duval, a couple whose criminal partnership pulls them through a sun-drenched world of heists, grifters and bad decisions — a modern take on the Bonnie-and-Clyde archetype presented across Rockstar's official trailers.",
+  confirmed: [
+    "Release date: November 19, 2026 (PlayStation 5 & Xbox Series X|S).",
+    "Setting: the state of Leonida, including Vice City.",
+    "Dual protagonists: Lucia Caminos and Jason Duval.",
+    "Four official video releases: Trailer 1, Trailer 2, An Extended Look, Launch Trailer.",
+  ],
+  speculation: [
+    "PC version timing — no PC release date has been announced.",
+    "Multiplayer / GTA Online details for this entry remain unannounced.",
+    "Performance targets, resolutions and benchmarks are unconfirmed.",
+    "Pricing, editions and pre-order contents are unconfirmed.",
+  ],
+};
+
+const TRAILERS = [
+  {
+    id: "trailer-1",
+    title: "Grand Theft Auto VI Trailer 1",
+    date: "2023-12-04",
+    yt: "QdBZY2fkU-0",
+    duration: "1:30",
+    desc: "The debut look at Leonida — Lucia's release from custody, Vice City Beach at golden hour, swamp country and the first glimpse of the state.",
+  },
+  {
+    id: "trailer-2",
+    title: "Grand Theft Auto VI Trailer 2",
+    date: "2025-05-06",
+    yt: "VQRLujxTm3c",
+    duration: "2:52",
+    desc: "Jason and Lucia as a partnership, touring Port Gellhorn, Ambrosia, Fort Baxter country, Grassrivers, the Leonida Keys and Mount Kalaga.",
+  },
+  {
+    id: "extended-look",
+    title: "Grand Theft Auto VI: An Extended Look",
+    date: "2026-08-27",
+    yt: "tJbzMqJGH4k",
+    duration: null,
+    desc: "A longer presentation of Leonida's world, systems and characters ahead of launch.",
+  },
+  {
+    id: "launch-trailer",
+    title: "Grand Theft Auto VI Launch Trailer",
+    date: "2026-10-15",
+    yt: null,
+    url: "https://www.rockstargames.com/VI/launch-trailer",
+    duration: null,
+    desc: "The final official trailer published on Rockstar's own site for the November 19, 2026 release.",
+  },
+];
+
+const CHARACTERS = [
+  { id: "jason", name: "Jason Duval", role: "Protagonist (confirmed)", main: true, art: "jason",
+    desc: "One of the two playable protagonists at the centre of GTA VI's story, introduced in official Rockstar trailers alongside Lucia." },
+  { id: "lucia", name: "Lucia Caminos", role: "Protagonist (confirmed)", main: true, art: "lucia",
+    desc: "One of the two playable protagonists at the centre of GTA VI's story. Trailer 1 opens with her release from custody in Leonida." },
+  { id: "cal", name: "Cal Hampton", role: "Featured character", art: "cal",
+    desc: "Featured character appearing in official GTA VI promotional material. No further official biography has been published." },
+  { id: "boobie", name: "Boobie Ike", role: "Featured character", art: "boobie",
+    desc: "Featured character appearing in official GTA VI promotional material. No further official biography has been published." },
+  { id: "drequan", name: "Dre'Quan Priest", role: "Featured character", art: "drequan",
+    desc: "Featured character appearing in official GTA VI promotional material. No further official biography has been published." },
+  { id: "realdimez", name: "Real Dimez", role: "Featured character", art: "realdimez",
+    desc: "Featured character appearing in official GTA VI promotional material. No further official biography has been published." },
+  { id: "raul", name: "Raul Bautista", role: "Featured character", art: "raul",
+    desc: "Featured character appearing in official GTA VI promotional material. No further official biography has been published." },
+  { id: "brian", name: "Brian Heder", role: "Featured character", art: "brian",
+    desc: "Featured character appearing in official GTA VI promotional material. No further official biography has been published." },
+];
+
+const LOCATIONS = [
+  { id: "vice-city", name: "Vice City", art: "ocean", official: true,
+    desc: "The neon metropolis at the heart of Leonida, shown across official trailers with its beachfront, downtown and nightlife." },
+  { id: "keys", name: "Leonida Keys", art: "keys", official: true,
+    desc: "An island chain off the Leonida coast, named in official Rockstar promotional material." },
+  { id: "grassrivers", name: "Grassrivers", art: "swamp", official: true,
+    desc: "Rural heartland region of Leonida, named in official Rockstar promotional material." },
+  { id: "port-gellhorn", name: "Port Gellhorn", art: "rain", official: true,
+    desc: "Coastal port region of Leonida, named in official Rockstar promotional material." },
+  { id: "ambrosia", name: "Ambrosia", art: "beach", official: true,
+    desc: "Inland Leonida region named in official Rockstar promotional material." },
+  { id: "mount-kalaga", name: "Mount Kalaga National Park", art: "storm", official: true,
+    desc: "Wilderness region of Leonida named in official Rockstar promotional material." },
+];
+
+/* Gallery: official video thumbnails (promotional media) + clearly labelled
+   CSS fan-interpretation plates. Placeholders are NEVER passed off as real. */
+const GALLERY = [
+  { id: "g1", cat: "Promotional Media", kind: "yt", yt: "QdBZY2fkU-0", title: "Trailer 1 key visual", alt: "Official Trailer 1 thumbnail: Lucia leaning on a car in neon Vice City" },
+  { id: "g2", cat: "Promotional Media", kind: "yt", yt: "VQRLujxTm3c", title: "Trailer 2 key visual", alt: "Official Trailer 2 thumbnail: Jason and Lucia in a Leonida swamp at sunrise" },
+  { id: "g3", cat: "Promotional Media", kind: "yt", yt: "tJbzMqJGH4k", title: "An Extended Look key visual", alt: "Official Extended Look thumbnail featuring Leonida scenery" },
+  { id: "g4", cat: "Vice City", kind: "art", art: "ocean", title: "Ocean Drive at night", alt: "Fan-made neon interpretation of a Vice City beachfront street at night" },
+  { id: "g5", cat: "Vice City", kind: "art", art: "rain", title: "Downtown in the rain", alt: "Fan-made interpretation of a rain-soaked Vice City downtown skyline" },
+  { id: "g6", cat: "Characters", kind: "art", art: "duo", title: "Two outlaws, one state", alt: "Fan-made silhouette artwork of two protagonists against a sunset" },
+  { id: "g7", cat: "Artwork", kind: "art", art: "beach", title: "Golden hour, Vice City Beach", alt: "Fan-made sunset beach artwork with palm silhouettes" },
+  { id: "g8", cat: "Official Screenshots", kind: "art", art: "swamp", title: "Cypress country at dawn", alt: "Fan-made swamp landscape plate; official screenshots live on rockstargames.com" },
+  { id: "g9", cat: "Vehicles", kind: "art", art: "car", title: "Chrome & neon", alt: "Fan-made vector illustration of a sports car under neon light" },
+  { id: "g10", cat: "Artwork", kind: "art", art: "storm", title: "Storm season", alt: "Fan-made storm clouds over a Leonida coastline" },
+  { id: "g11", cat: "Official Screenshots", kind: "art", art: "keys", title: "Causeway to the Keys", alt: "Fan-made bridge-and-ocean plate; official screenshots live on rockstargames.com" },
+  { id: "g12", cat: "Characters", kind: "art", art: "lucia", title: "Dossier: Lucia", alt: "Fan-made stylised dossier portrait placeholder" },
+];
+const GALLERY_CATS = ["All", "Official Screenshots", "Characters", "Vice City", "Artwork", "Vehicles", "Promotional Media"];
+
+const VIRAL_PLATFORMS = [
+  { id: "reddit", platform: "REDDIT", icon: "reddit", cat: "Community Highlights", title: "Reddit GTA VI community",
+    desc: "The r/GTA6 subreddit — discussions, theories and fan content from the community.", url: "https://www.reddit.com/r/GTA6/" },
+  { id: "x", platform: "X", icon: "x", cat: "GTA VI News", title: "X / Twitter latest #GTA6 posts",
+    desc: "Live search of the #GTA6 conversation on X as it happens.", url: "https://x.com/search?q=%23GTA6&src=typed_query&f=live" },
+  { id: "tiktok", platform: "TIKTOK", icon: "tiktok", cat: "Viral Memes", title: "TikTok #gta6",
+    desc: "Short-form edits, memes and reactions under the #gta6 tag.", url: "https://www.tiktok.com/tag/gta6" },
+  { id: "youtube", platform: "YOUTUBE", icon: "youtube", cat: "Trending GTA VI Videos", title: "YouTube GTA VI videos",
+    desc: "Search results for GTA 6 across YouTube — breakdowns, reactions and edits.", url: "https://www.youtube.com/results?search_query=GTA+6" },
+  { id: "gnews", platform: "NEWS", icon: "news", cat: "GTA VI News", title: "Google News: GTA 6",
+    desc: "Coverage of GTA VI from publications indexed by Google News.", url: "https://news.google.com/search?q=GTA%206" },
+  { id: "gtrends", platform: "NEWS", icon: "trends", cat: "GTA VI News", title: "Google Trends: GTA 6",
+    desc: "Public search-interest chart for “GTA 6” over the last 7 days.", url: "https://trends.google.com/trends/explore?date=now%207-d&q=GTA%206" },
+  { id: "instagram", platform: "INSTAGRAM", icon: "instagram", cat: "Vice City Discoveries", title: "Instagram #gta6",
+    desc: "Fan art, cosplay and aesthetic edits under the #gta6 tag.", url: "https://www.instagram.com/explore/tags/gta6/" },
+];
+
+const VIRAL_CATEGORIES = [
+  { name: "Trending GTA VI Videos", platform: "YOUTUBE", icon: "youtube", url: "https://www.youtube.com/results?search_query=GTA+6", desc: "What YouTube is surfacing for GTA 6 right now." },
+  { name: "Viral Memes", platform: "REDDIT", icon: "reddit", url: "https://www.reddit.com/r/GTA6/", desc: "The meme output of r/GTA6, refreshed by the community daily." },
+  { name: "Gameplay Reactions", platform: "YOUTUBE", icon: "play", url: "https://www.youtube.com/results?search_query=GTA+6+Extended+Look+reaction", desc: "Creators reacting to the Extended Look and launch footage." },
+  { name: "Fan Theories", platform: "REDDIT", icon: "spark", url: "https://www.reddit.com/r/GTA6/search/?q=theory&restrict_sr=1", desc: "Community theories — independent and unverified unless Rockstar confirms." },
+  { name: "Character Discussions", platform: "X", icon: "x", url: "https://x.com/search?q=%23GTA6%20Lucia%20OR%20Jason&src=typed_query&f=live", desc: "Live X conversation about Lucia, Jason and the cast." },
+  { name: "Vice City Discoveries", platform: "TIKTOK", icon: "tiktok", url: "https://www.tiktok.com/tag/gta6", desc: "Short-form clips spotting details across Leonida." },
+  { name: "GTA VI News", platform: "NEWS", icon: "news", url: "https://news.google.com/search?q=GTA%206", desc: "Aggregated publication coverage via Google News." },
+  { name: "Community Highlights", platform: "INSTAGRAM", icon: "instagram", url: "https://www.instagram.com/explore/tags/gta6/", desc: "Fan art and photography highlights from the community." },
+];
+
+/* Curated highlights: editable local list. Source + last-reviewed date shown. */
+const CURATED = [
+  { title: "Trailer 2 frame-by-frame breakdown threads", platform: "REDDIT", url: "https://www.reddit.com/r/GTA6/", source: "reddit.com/r/GTA6", reviewed: "2026-11-18" },
+  { title: "#GTA6 launch-week live posts", platform: "X", url: "https://x.com/search?q=%23GTA6&src=typed_query&f=live", source: "x.com search", reviewed: "2026-11-18" },
+  { title: "Extended Look reaction compilations", platform: "YOUTUBE", url: "https://www.youtube.com/results?search_query=GTA+6+Extended+Look+reaction", source: "youtube.com search", reviewed: "2026-11-18" },
+  { title: "Vice City skyline neon edits", platform: "TIKTOK", url: "https://www.tiktok.com/tag/gta6", source: "tiktok.com/tag/gta6", reviewed: "2026-11-18" },
+];
+
+const NEWS = [
+  { title: "GTA VI launches worldwide on PS5 & Xbox Series X|S", date: "2026-11-19",
+    summary: "The official release date confirmed by Rockstar Games. Leonida opens to players worldwide.",
+    source: "Official GTA VI", url: "https://www.rockstargames.com/VI" },
+  { title: "Grand Theft Auto VI Launch Trailer", date: "2026-10-15",
+    summary: "The final trailer ahead of release, published on Rockstar's official GTA VI site.",
+    source: "Official GTA VI", url: "https://www.rockstargames.com/VI/launch-trailer" },
+  { title: "Grand Theft Auto VI: An Extended Look", date: "2026-08-27",
+    summary: "A longer official presentation of Leonida, its systems and its people.",
+    source: "Rockstar Games YouTube", url: "https://www.youtube.com/watch?v=tJbzMqJGH4k" },
+  { title: "Trailer 2 names the regions of Leonida", date: "2025-05-06",
+    summary: "Official trailer introducing Jason alongside Lucia and touring the state.",
+    source: "Rockstar Games YouTube", url: "https://www.youtube.com/watch?v=VQRLujxTm3c" },
+  { title: "Debut trailer introduces Lucia and Vice City", date: "2023-12-04",
+    summary: "The first official look at Grand Theft Auto VI and the state of Leonida.",
+    source: "Rockstar Games YouTube", url: "https://www.youtube.com/watch?v=QdBZY2fkU-0" },
+];
+
+const COMMUNITY_LINKS = [
+  { name: "Reddit GTA VI", icon: "reddit", url: "https://www.reddit.com/r/GTA6/", desc: "The largest GTA VI discussion board." },
+  { name: "YouTube discussions", icon: "youtube", url: "https://www.youtube.com/results?search_query=GTA+6", desc: "Breakdowns, theories and reaction videos." },
+  { name: "TikTok community", icon: "tiktok", url: "https://www.tiktok.com/tag/gta6", desc: "Short-form fan edits and memes." },
+  { name: "X discussions", icon: "x", url: "https://x.com/search?q=%23GTA6&src=typed_query&f=live", desc: "Live conversation under #GTA6." },
+  { name: "Fan theories", icon: "spark", url: "https://www.reddit.com/r/GTA6/search/?q=theory&restrict_sr=1", desc: "Unverified community theories." },
+  { name: "Community videos", icon: "play", url: "https://www.youtube.com/results?search_query=GTA+6+community+highlights", desc: "Community-made montages and machinima." },
+];
+
+const FAQ = [
+  { q: "When was GTA VI released?", a: "Grand Theft Auto VI released on November 19, 2026.", link: { label: "Official GTA VI site", url: "https://www.rockstargames.com/VI" } },
+  { q: "Which platforms support GTA VI?", a: "PlayStation 5 and Xbox Series X|S are the confirmed platforms at launch.", link: { label: "Official GTA VI site", url: "https://www.rockstargames.com/VI" } },
+  { q: "Is GTA VI coming to PC?", a: "Rockstar's official platform information currently lists PlayStation 5 and Xbox Series X|S. No PC release date has been announced.", link: { label: "Official GTA VI site", url: "https://www.rockstargames.com/VI" } },
+  { q: "Who are the main characters?", a: "The story follows two protagonists: Lucia Caminos and Jason Duval.", link: { label: "Trailer 2", url: "https://www.youtube.com/watch?v=VQRLujxTm3c" } },
+  { q: "Where does GTA VI take place?", a: "In the state of Leonida, United States — with the city of Vice City at its centre.", link: { label: "Trailer 1", url: "https://www.youtube.com/watch?v=QdBZY2fkU-0" } },
+  { q: "Where can I watch all official trailers?", a: "On the official Rockstar Games media page and the Rockstar Games YouTube channel. All four are linked in the Trailers section above.", link: { label: "Official videos", url: "https://www.rockstargames.com/VI/media/videos" } },
+  { q: "Where can I find official GTA VI screenshots?", a: "In the official media gallery on rockstargames.com. This site only shows labelled fan interpretations plus official video thumbnails.", link: { label: "Official media", url: "https://www.rockstargames.com/VI/media" } },
+  { q: "Where can I follow Rockstar Games announcements?", a: "The Rockstar Newswire (tagged for GTA VI) and Rockstar's official social channels.", link: { label: "Rockstar Newswire", url: "https://www.rockstargames.com/newswire?tag=vi" } },
+];
+
+const NAV = [
+  { id: "home", label: "Home" },
+  { id: "info", label: "Game Info" },
+  { id: "trailers", label: "Trailers" },
+  { id: "characters", label: "Characters" },
+  { id: "locations", label: "Locations" },
+  { id: "gallery", label: "Gallery" },
+  { id: "viral", label: "Viral Hub" },
+  { id: "community", label: "Community" },
+];
+
+/* ============================== UTILS ===================================== */
+const LS = {
+  get(key, fallback) {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+    catch { return fallback; }
+  },
+  set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch {} },
+};
+function useLocalStorage(key, initial) {
+  const [val, setVal] = useState(() => LS.get(key, initial));
+  const set = useCallback((next) => {
+    setVal((prev) => {
+      const v = typeof next === "function" ? next(prev) : next;
+      LS.set(key, v); return v;
+    });
+  }, [key]);
+  return [val, set];
+}
+function fmtDate(iso) {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+}
+function releaseStatus(now, iso) {
+  const [y, m, d] = iso.split("-").map(Number);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const day = new Date(y, m - 1, d).getTime();
+  if (today === day) return { status: "launch", diff: 0 };
+  if (today > day) return { status: "passed", diff: 0 };
+  return { status: "countdown", diff: Math.max(0, new Date(y, m - 1, d, 0, 0, 0).getTime() - now.getTime()) };
+}
+function useNow(ms = 1000) {
+  const [n, setN] = useState(() => new Date());
+  useEffect(() => { const t = setInterval(() => setN(new Date()), ms); return () => clearInterval(t); }, [ms]);
+  return n;
+}
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); return true;
+    } catch { return false; }
+  }
+}
+function toast(msg, color) { window.dispatchEvent(new CustomEvent("vcp:toast", { detail: { msg, color } })); }
+async function shareItem({ title, text, url }) {
+  const u = url || window.location.href;
+  if (navigator.share) {
+    try { await navigator.share({ title, text, url: u }); return; } catch { return; }
+  }
+  const ok = await copyText(`${title} — ${u}`);
+  toast(ok ? "Link copied to clipboard" : "Could not copy link", ok ? "#22d9ff" : "#ff2e88");
+}
+
+/* ============================== ICONS ===================================== */
+const ICONS = {
+  menu: <path d="M4 7h16M4 12h16M4 17h16" />,
+  close: <path d="M6 6l12 12M18 6L6 18" />,
+  search: <><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></>,
+  sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4" /></>,
+  moon: <path d="M20 14.5A8.5 8.5 0 019.5 4a8.5 8.5 0 1010.5 10.5z" />,
+  heart: <path d="M12 20s-7-4.6-9-9c-1.2-2.7.6-6 3.8-6 2 0 3.4 1.2 5.2 3.4C13.8 6.2 15.2 5 17.2 5c3.2 0 5 3.3 3.8 6-2 4.4-9 9-9 9z" />,
+  share: <><circle cx="6" cy="12" r="2.5" /><circle cx="17" cy="6" r="2.5" /><circle cx="17" cy="18" r="2.5" /><path d="M8.3 10.8l6.4-3.6M8.3 13.2l6.4 3.6" /></>,
+  copy: <><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V6a2 2 0 012-2h9" /></>,
+  external: <path d="M14 4h6v6M20 4l-9 9M11 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5" />,
+  play: <path d="M8 5.5v13l11-6.5z" />,
+  youtube: <><rect x="2.5" y="6" width="19" height="12.5" rx="3.5" /><path d="M10.2 9.4v5.7l5-2.85z" /></>,
+  reddit: <><circle cx="12" cy="13.5" r="6.5" /><path d="M12 7l1-3.5 3.5 1" /><circle cx="9.6" cy="13" r=".9" fill="currentColor" stroke="none" /><circle cx="14.4" cy="13" r=".9" fill="currentColor" stroke="none" /><path d="M9.5 16c1.6 1.1 3.4 1.1 5 0" /></>,
+  x: <path d="M4.5 4.5l15 15M19.5 4.5l-15 15" />,
+  tiktok: <path d="M13.5 4h2.6c.3 2.4 1.9 4 4.4 4.3v2.8c-2.8-.3-5-1.5-6.4-3.2v6.6a5.2 5.2 0 11-5.2-5.2c.3 0 .7 0 1 .1v2.9a2.4 2.4 0 102.4 2.4V4z" />,
+  instagram: <><rect x="4" y="4" width="16" height="16" rx="4.5" /><circle cx="12" cy="12" r="3.6" /><circle cx="16.6" cy="7.4" r=".9" fill="currentColor" stroke="none" /></>,
+  news: <><rect x="3.5" y="5" width="14" height="14" rx="2" /><path d="M17.5 9H20a1 1 0 011 1v8a1.5 1.5 0 01-3 0zM7 9h7M7 12.5h7M7 16h4.5" /></>,
+  trends: <path d="M3.5 17.5l5-6 3.5 3 5-7M17 7.5h3.5V11" />,
+  left: <path d="M14.5 5.5L8 12l6.5 6.5" />,
+  right: <path d="M9.5 5.5L16 12l-6.5 6.5" />,
+  down: <path d="M5.5 9.5L12 16l6.5-6.5" />,
+  up: <path d="M12 19V5M6 11l6-6 6 6" />,
+  check: <path d="M4.5 12.5l5 5 10-11" />,
+  clock: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7v5.5l3.5 2" /></>,
+  calendar: <><rect x="3.5" y="5" width="17" height="15.5" rx="2.5" /><path d="M3.5 10h17M8 3v4M16 3v4" /></>,
+  pad: <path d="M7.5 7.5h9a4.6 4.6 0 014.5 3.7l.7 3.9a2.5 2.5 0 01-4.4 2.1L15.6 15H8.4l-1.7 2.2a2.5 2.5 0 01-4.4-2.1l.7-3.9a4.6 4.6 0 014.5-3.7zM7 10.5v2.6M5.7 11.8h2.6M16.3 11h.01M18 12.7h.01" />,
+  map: <path d="M9 4L3.5 6.2v13.6L9 17.6l6 2.4 5.5-2.2V4.2L15 6.4zM9 4v13.6M15 6.4V20" />,
+  users: <><circle cx="9" cy="8.5" r="3" /><path d="M3.5 19c.6-3.2 2.7-5 5.5-5s4.9 1.8 5.5 5" /><circle cx="16.8" cy="9.5" r="2.4" /><path d="M15.5 14.4c2.5.2 4.3 1.8 4.9 4.6" /></>,
+  spark: <path d="M12 3l1.9 5.6L19.5 10l-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.4zM18.5 16l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z" />,
+  film: <><rect x="3.5" y="5" width="17" height="14" rx="2.5" /><path d="M8 5v14M16 5v14M3.5 9.5H8M3.5 14.5H8M16 9.5h4.5M16 14.5h4.5" /></>,
+  image: <><rect x="3.5" y="5" width="17" height="14" rx="2.5" /><circle cx="9" cy="10" r="1.6" /><path d="M4.5 17l5-5 3.5 3.5 3-3 4 4.5" /></>,
+  link: <path d="M10 14a4 4 0 005.7 0l3-3A4 4 0 0013 5.3l-1.2 1.2M14 10a4 4 0 00-5.7 0l-3 3A4 4 0 0011 18.7l1.2-1.2" />,
+  trash: <path d="M4.5 6.5h15M9 6.5V4.8A1.3 1.3 0 0110.3 3.5h3.4A1.3 1.3 0 0115 4.8v1.7M7 6.5l1 13a1.5 1.5 0 001.5 1.4h5A1.5 1.5 0 0016 19.5l1-13M10.2 10v7M13.8 10v7" />,
+  star: <path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.7l5.9-.8z" />,
+};
+function Icon({ name, size = 20, filled = false, className = "" }) {
+  return (
+    <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"}
+      stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      {ICONS[name]}
+    </svg>
+  );
+}
+
+/* ============================ SMALL PARTS ================================= */
+function Reveal({ children, delay = 0, className = "" }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { el.classList.add("in"); return; }
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { el.classList.add("in"); io.disconnect(); } },
+      { threshold: 0.12, rootMargin: "0px 0px -6% 0px" });
+    io.observe(el); return () => io.disconnect();
+  }, []);
+  return <div ref={ref} className={`reveal ${className}`} style={{ transitionDelay: `${delay}ms` }}>{children}</div>;
+}
+function SectionHead({ kicker, title, accent, lead }) {
+  return (
+    <Reveal className="sec-head">
+      <div>
+        <span className="kicker">{kicker}</span>
+        <h2 className="h2">{title} <span className="grad">{accent}</span></h2>
+      </div>
+      {lead && <p className="lead">{lead}</p>}
+    </Reveal>
+  );
+}
+function ExtLink({ href, className = "btn btn-ghost", children, icon = "external" }) {
+  return (
+    <a className={className} href={href} target="_blank" rel="noopener noreferrer nofollow">
+      {children} <Icon name={icon} size={16} />
+    </a>
+  );
+}
+function ShareBar({ title, text, compact = false }) {
+  const url = typeof window !== "undefined" ? window.location.href : "";
+  const e = encodeURIComponent;
+  const intents = [
+    { id: "x", label: "Share on X", href: `https://twitter.com/intent/tweet?text=${e(text || title)}&url=${e(url)}` },
+    { id: "reddit", label: "Share on Reddit", href: `https://www.reddit.com/submit?url=${e(url)}&title=${e(title)}` },
+    { id: "facebook", label: "Share on Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${e(url)}`, icon: "share" },
+    { id: "whatsapp", label: "Share on WhatsApp", href: `https://wa.me/?text=${e(`${title} ${url}`)}`, icon: "message" },
+  ];
+  return (
+    <div className={`sharebar ${compact ? "compact" : ""}`} role="group" aria-label={`Share ${title}`}>
+      <button className="icon-btn" title="Native share / copy" aria-label="Native share or copy link"
+        onClick={() => shareItem({ title, text, url })}><Icon name="share" size={16} /></button>
+      <button className="icon-btn" title="Copy link" aria-label="Copy link"
+        onClick={async () => { const ok = await copyText(url); toast(ok ? "Link copied" : "Copy failed", ok ? "#22d9ff" : "#ff2e88"); }}>
+        <Icon name="copy" size={16} />
+      </button>
+      {intents.map((s) => (
+        <a key={s.id} className="icon-btn" title={s.label} aria-label={s.label} href={s.href} target="_blank" rel="noopener noreferrer nofollow">
+          <Icon name={s.icon || s.id} size={16} />
+        </a>
+      ))}
+    </div>
+  );
+}
+function Thumb({ yt, alt, className = "" }) {
+  const [stage, setStage] = useState(0);
+  if (!yt || stage === 2) return <div className={`thumb-fallback ${className}`} role="img" aria-label={alt}><Icon name="film" size={34} /></div>;
+  return (
+    <img className={`thumb ${className}`} loading="lazy" decoding="async" width="1280" height="720"
+      src={stage === 0 ? `https://i.ytimg.com/vi/${yt}/maxresdefault.jpg` : `https://i.ytimg.com/vi/${yt}/hqdefault.jpg`}
+      alt={alt} onError={() => setStage((s) => s + 1)} />
+  );
+}
+function ArtPlate({ art, label = true, className = "" }) {
+  return (
+    <div className={`art art-${art} ${className}`} aria-hidden={label}>
+      <div className="art-frame" />
+      {art === "car" && (
+        <svg viewBox="0 0 220 110" className="art-svg" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round">
+          <path d="M14 74c4-8 12-12 22-14 10-12 26-20 44-20h40c20 0 36 8 46 20 12 2 20 6 24 14 4 6 2 12-6 12H20c-8 0-10-6-6-12z" fill="rgba(34,217,255,.10)" />
+          <path d="M56 60c8-10 20-16 34-16h26c14 0 26 6 34 16z" fill="rgba(255,46,136,.16)" />
+          <circle cx="58" cy="86" r="13" fill="rgba(4,6,14,.85)" /><circle cx="162" cy="86" r="13" fill="rgba(4,6,14,.85)" />
+        </svg>
+      )}
+      {(art === "ocean" || art === "beach" || art === "duo") && (
+        <svg viewBox="0 0 400 300" className="art-svg full" preserveAspectRatio="none">
+          <g fill="#0a0618">
+            {art !== "beach" && <><rect x="20" y="150" width="44" height="80" /><rect x="70" y="126" width="30" height="104" /><rect x="106" y="164" width="52" height="66" /><rect x="164" y="110" width="34" height="120" /><rect x="204" y="146" width="46" height="84" /><rect x="256" y="122" width="30" height="108" /><rect x="292" y="158" width="54" height="72" /><rect x="352" y="132" width="34" height="98" /></>}
+          </g>
+          {art === "beach" && <circle cx="200" cy="180" r="46" fill="#fff2b0" opacity=".85" />}
+          {art === "duo" && <circle cx="200" cy="120" r="60" fill="#ffd27a" opacity=".6" />}
+          <g fill="#07050f">
+            <path d="M30 300c2-40-2-70 6-100h6c-4 30 0 60 2 100z" />
+            <path d="M36 200c-16-18-32-22-44-16 16-2 32 6 42 20zM38 200c16-20 32-24 40-18-14-2-28 8-36 24zM37 196c-12-24-22-36-36-40 12 8 22 22 32 42zM39 196c12-24 24-36 38-40-12 8-22 24-32 42z" />
+            <path d="M360 300c2-44-2-76 6-108h6c-4 32 0 64 2 108z" />
+            <path d="M366 192c-16-18-32-22-44-16 16-2 32 6 42 20zM368 192c16-20 32-24 40-18-14-2-28 8-36 24zM367 188c-12-24-22-36-36-40 12 8 22 22 32 42z" />
+          </g>
+          {art === "duo" && <g fill="#0b0518"><path d="M120 300c0-52 26-82 60-82s44 30 44 82z" /><path d="M210 300c0-58 26-88 60-88s46 30 46 88z" /><ellipse cx="176" cy="204" rx="30" ry="34" /><ellipse cx="266" cy="198" rx="30" ry="34" /></g>}
+          {art === "ocean" && <g opacity=".9"><rect x="74" y="176" width="20" height="5" rx="2" fill="#22d9ff" /><rect x="170" y="150" width="22" height="5" rx="2" fill="#ff2e88" /><rect x="262" y="168" width="18" height="5" rx="2" fill="#ffb020" /><rect x="300" y="188" width="26" height="5" rx="2" fill="#ff6fb0" /></g>}
+        </svg>
+      )}
+      {label && <span className="art-label">Fan interpretation · not an official screenshot</span>}
+    </div>
+  );
+}
+
+/* ============================== HEADER ==================================== */
+function Header({ onSearch, onShare, favs, theme, setTheme }) {
+  const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState("home");
+  const [favOpen, setFavOpen] = useState(false);
+  useEffect(() => {
+    const on = () => setScrolled(window.scrollY > 40);
+    on(); window.addEventListener("scroll", on, { passive: true });
+    return () => window.removeEventListener("scroll", on);
+  }, []);
+  useEffect(() => {
+    const io = new IntersectionObserver((es) => {
+      es.forEach((e) => { if (e.isIntersecting) setActive(e.target.id); });
+    }, { rootMargin: "-45% 0px -50% 0px" });
+    NAV.forEach((n) => { const el = document.getElementById(n.id); if (el) io.observe(el); });
+    const news = document.getElementById("news"); if (news) io.observe(news);
+    return () => io.disconnect();
+  }, []);
+  const go = (id) => (e) => { e.preventDefault(); setOpen(false); document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }); };
+  const favCount = favs.trailers.length + favs.characters.length + favs.locations.length;
+  return (
+    <header className={`nav ${scrolled ? "scrolled" : ""}`}>
+      <div className="nav-in">
+        <a className="brand" href="#home" onClick={go("home")} aria-label="Vice City Pulse home">
+          <span className="mark"><span>VI</span></span>
+          <span className="brand-txt"><b>VICE CITY PULSE</b><small>GTA VI fan hub</small></span>
+        </a>
+        <nav className={`nav-links ${open ? "open" : ""}`} aria-label="Primary">
+          {NAV.map((n) => (
+            <a key={n.id} href={`#${n.id}`} onClick={go(n.id)} aria-current={active === n.id ? "true" : undefined}>{n.label}</a>
+          ))}
+        </nav>
+        <div className="nav-actions">
+          <button className="icon-btn" onClick={onSearch} aria-label="Search the site (Ctrl+K)" title="Search (Ctrl+K)"><Icon name="search" size={18} /></button>
+          <div className="fav-wrap">
+            <button className="icon-btn" aria-label={`Favorites (${favCount})`} title="Favorites" aria-expanded={favOpen}
+              onClick={() => setFavOpen((v) => !v)}>
+              <Icon name="heart" size={18} filled={favCount > 0} />
+              {favCount > 0 && <span className="fav-count">{favCount}</span>}
+            </button>
+            {favOpen && (
+              <div className="fav-pop" role="dialog" aria-label="Your favorites">
+                <b>Favorites (saved in this browser)</b>
+                {favCount === 0 && <p>No favorites yet — tap the heart on trailers, characters or locations.</p>}
+                {favs.trailers.map((id) => <a key={"t" + id} href="#trailers" onClick={() => setFavOpen(false)}><Icon name="film" size={14} /> {TRAILERS.find((t) => t.id === id)?.title}</a>)}
+                {favs.characters.map((id) => <a key={"c" + id} href="#characters" onClick={() => setFavOpen(false)}><Icon name="users" size={14} /> {CHARACTERS.find((c) => c.id === id)?.name}</a>)}
+                {favs.locations.map((id) => <a key={"l" + id} href="#locations" onClick={() => setFavOpen(false)}><Icon name="map" size={14} /> {LOCATIONS.find((l) => l.id === id)?.name}</a>)}
+              </div>
+            )}
+          </div>
+          <button className="icon-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} title="Toggle theme">
+            <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
+          </button>
+          <button className="icon-btn" onClick={onShare} aria-label="Share this website" title="Share"><Icon name="share" size={18} /></button>
+          <a className="btn btn-solid nav-cta" href="#trailers" onClick={go("trailers")}><Icon name="play" size={15} /> Watch Trailers</a>
+          <button className="burger" aria-expanded={open} aria-label="Toggle menu" onClick={() => setOpen((v) => !v)}>
+            <i /><i /><i />
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+/* ============================== HERO ====================================== */
+function Hero({ onWatchLaunch, status }) {
+  const now = useNow(1000);
+  const st = releaseStatus(now, CONFIG.releaseDate);
+  const d = Math.floor(st.diff / 86400000), h = Math.floor((st.diff % 86400000) / 3600000),
+    m = Math.floor((st.diff % 3600000) / 60000), s = Math.floor((st.diff % 60000) / 1000);
+  const pad = (n) => String(n).padStart(2, "0");
+  const go = (id) => (e) => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }); };
+  return (
+    <section className="hero" id="home" aria-label="Introduction">
+      <div className="hero-sky" /><div className="stars" />
+      <svg className="hero-sun" viewBox="0 0 400 400" aria-hidden="true">
+        <defs>
+          <linearGradient id="sunG" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#ffe9a8" /><stop offset=".42" stopColor="#ff8fc0" />
+            <stop offset=".78" stopColor="#ff2e88" /><stop offset="1" stopColor="#a4166b" />
+          </linearGradient>
+          <radialGradient id="sunGlow"><stop offset="0" stopColor="#ff7ab8" stopOpacity=".5" /><stop offset="1" stopColor="#ff7ab8" stopOpacity="0" /></radialGradient>
+          <clipPath id="sunClip"><circle cx="200" cy="200" r="126" /></clipPath>
+        </defs>
+        <circle cx="200" cy="200" r="196" fill="url(#sunGlow)" />
+        <circle cx="200" cy="200" r="126" fill="url(#sunG)" />
+        <g clipPath="url(#sunClip)" fill="#150a2a" opacity=".92">
+          <rect x="60" y="212" width="280" height="3" /><rect x="60" y="222" width="280" height="4" />
+          <rect x="60" y="234" width="280" height="5" /><rect x="60" y="248" width="280" height="7" />
+          <rect x="60" y="266" width="280" height="9" /><rect x="60" y="288" width="280" height="12" />
+          <rect x="60" y="314" width="280" height="16" />
+        </g>
+      </svg>
+      <div className="hero-sea" />
+      <svg className="hero-skyline" viewBox="0 0 1440 300" preserveAspectRatio="none" aria-hidden="true">
+        <g fill="#140b2c" opacity=".7">
+          <rect x="0" y="150" width="70" height="150" /><rect x="80" y="110" width="50" height="190" /><rect x="140" y="170" width="80" height="130" />
+          <rect x="230" y="90" width="56" height="210" /><rect x="300" y="140" width="70" height="160" /><rect x="380" y="105" width="46" height="195" />
+          <rect x="440" y="160" width="84" height="140" /><rect x="540" y="80" width="60" height="220" /><rect x="610" y="130" width="72" height="170" />
+          <rect x="700" y="100" width="50" height="200" /><rect x="760" y="150" width="86" height="150" /><rect x="860" y="90" width="56" height="210" />
+          <rect x="930" y="140" width="70" height="160" /><rect x="1010" y="110" width="48" height="190" /><rect x="1070" y="160" width="82" height="140" />
+          <rect x="1160" y="95" width="58" height="205" /><rect x="1230" y="140" width="70" height="160" /><rect x="1310" y="115" width="50" height="185" />
+          <rect x="1370" y="155" width="70" height="145" />
+        </g>
+        <g fill="#0b0620">
+          <rect x="30" y="190" width="60" height="110" /><rect x="110" y="160" width="44" height="140" /><rect x="180" y="210" width="70" height="90" />
+          <rect x="270" y="140" width="50" height="160" /><rect x="340" y="185" width="64" height="115" /><rect x="430" y="150" width="42" height="150" />
+          <rect x="490" y="200" width="76" height="100" /><rect x="590" y="130" width="52" height="170" /><rect x="660" y="175" width="66" height="125" />
+          <rect x="750" y="145" width="44" height="155" /><rect x="810" y="195" width="78" height="105" /><rect x="910" y="135" width="50" height="165" />
+          <rect x="980" y="180" width="64" height="120" /><rect x="1060" y="155" width="44" height="145" /><rect x="1120" y="200" width="74" height="100" />
+          <rect x="1210" y="140" width="52" height="160" /><rect x="1280" y="185" width="64" height="115" /><rect x="1360" y="160" width="46" height="140" />
+        </g>
+      </svg>
+      <div className="hero-grid" aria-hidden="true" />
+      <div className="hero-vign" aria-hidden="true" />
+      <div className="hero-in">
+        <div className="hero-kicker">
+          <span className={`badge ${st.status === "launch" ? "b-ok" : st.status === "passed" ? "b-co" : "b-rep"}`}>
+            {st.status === "launch" ? "LAUNCH DAY" : st.status === "passed" ? "RELEASE DATE PASSED" : `T-MINUS ${d}D ${pad(h)}H ${pad(m)}M ${pad(s)}S`}
+          </span>
+          <span className="badge b-co">Official release · {fmtDate(CONFIG.releaseDate)}</span>
+          <span className="badge">PS5 · Xbox Series X|S</span>
+        </div>
+        <span className="title-pre">Grand Theft Auto</span>
+        <h1 className="title-vi">VI</h1>
+        <p className="hero-sub-lines">WELCOME TO LEONIDA.<br />THE WAIT IS OVER.</p>
+        <p className="hero-sub">
+          Explore the world of Vice City, discover Jason and Lucia's story, watch official trailers and experience
+          everything surrounding the next chapter of Grand Theft Auto.
+        </p>
+        <div className="hero-cta">
+          <button className="btn btn-solid" onClick={onWatchLaunch}><Icon name="play" size={16} /> Watch Launch Trailer</button>
+          <a className="btn btn-ghost" href="#info" onClick={go("info")}>Explore Game</a>
+          <a className="btn btn-ghost" href="#viral" onClick={go("viral")}>Explore Viral Videos</a>
+        </div>
+        <div className="hero-meta">
+          <div className="count-strip" role="timer" aria-label="Release countdown">
+            {st.status === "countdown" && (<>
+              <div className="count-box"><b>{d}</b><span>Days</span></div>
+              <div className="count-box"><b>{pad(h)}</b><span>Hours</span></div>
+              <div className="count-box"><b>{pad(m)}</b><span>Minutes</span></div>
+              <div className="count-box"><b>{pad(s)}</b><span>Seconds</span></div>
+            </>)}
+            {st.status === "launch" && <div className="count-box wide"><b>LAUNCH DAY</b><span>Leonida is open</span></div>}
+            {st.status === "passed" && <div className="count-box wide"><b>RELEASE DATE PASSED</b><span>Out now on PS5 &amp; Xbox Series X|S</span></div>}
+          </div>
+          <ShareBar title="VICE CITY PULSE — the GTA VI fan hub" text="Everything about GTA VI: trailers, Leonida, viral hub." compact />
+        </div>
+      </div>
+      <div className="scroll-cue" aria-hidden="true"><i />Scroll</div>
+    </section>
+  );
+}
+
+/* ============================ GAME INFO =================================== */
+function GameInfo() {
+  const cards = [
+    { icon: "film", k: "Game Title", v: GAME.title },
+    { icon: "star", k: "Developer", v: GAME.developer },
+    { icon: "star", k: "Publisher", v: GAME.publisher },
+    { icon: "calendar", k: "Official Release", v: fmtDate(GAME.releaseDate) },
+    { icon: "pad", k: "Platforms", v: GAME.platforms.join(" · ") },
+    { icon: "map", k: "Setting", v: GAME.setting },
+    { icon: "spark", k: "Major Location", v: GAME.majorLocation },
+    { icon: "users", k: "Protagonists", v: GAME.protagonists.join(" & ") },
+    { icon: "play", k: "Genre", v: GAME.genre },
+  ];
+  return (
+    <section className="sec" id="info">
+      <div className="wrap">
+        <SectionHead kicker="Case file 001" title="GAME" accent="INFORMATION"
+          lead="The confirmed facts about Grand Theft Auto VI, kept separate from speculation." />
+        <div className="grid g3">
+          {cards.map((c, i) => (
+            <Reveal key={c.k} delay={i * 50}>
+              <article className="card fact">
+                <span className="fact-ic"><Icon name={c.icon} size={20} /></span>
+                <span className="k">{c.k}</span>
+                <span className="v">{c.v}</span>
+              </article>
+            </Reveal>
+          ))}
+        </div>
+        <div className="split" style={{ marginTop: "1.6rem" }}>
+          <Reveal>
+            <div className="card" style={{ height: "100%" }}>
+              <span className="kicker">Official story premise</span>
+              <p className="lead" style={{ marginTop: ".8rem" }}>{GAME.premise}</p>
+              <div style={{ marginTop: "1rem" }}><ShareBar title="GTA VI story premise" text="Lucia & Jason in Leonida." compact /></div>
+            </div>
+          </Reveal>
+          <Reveal delay={80}>
+            <div className="grid g2" style={{ gap: ".9rem" }}>
+              <div className="fvr-col c-ok">
+                <h3><span className="badge b-ok">Confirmed</span></h3>
+                <ul>{GAME.confirmed.map((x) => <li key={x}>{x}</li>)}</ul>
+              </div>
+              <div className="fvr-col c-rum">
+                <h3><span className="badge b-rum">Speculation</span></h3>
+                <ul>{GAME.speculation.map((x) => <li key={x}>{x}</li>)}</ul>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================ TRAILERS ==================================== */
+function TrailerGallery({ favs, toggleFav, openVideo }) {
+  return (
+    <section className="sec" id="trailers">
+      <div className="wrap">
+        <SectionHead kicker="Case file 002" title="OFFICIAL" accent="TRAILERS"
+          lead="Every official video release, with lazy-loaded embeds in a cinematic modal." />
+        <div className="grid g2">
+          {TRAILERS.map((t, i) => (
+            <Reveal key={t.id} delay={i * 70}>
+              <article className="card tr">
+                <div className="tr-thumb">
+                  {t.yt ? <Thumb yt={t.yt} alt={`${t.title} official thumbnail`} /> : <ArtPlate art="ocean" label={false} className="tr-art" />}
+                  <button className="tr-play" aria-label={`Watch ${t.title}`} onClick={() => openVideo(t)}>
+                    <i><Icon name="play" size={22} filled /></i>
+                  </button>
+                  {t.duration && <span className="tr-dur mono">{t.duration}</span>}
+                </div>
+                <div className="tr-body">
+                  <div className="tr-top">
+                    <h3>{t.title}</h3>
+                    <button className={`icon-btn ${favs.trailers.includes(t.id) ? "on" : ""}`} aria-label="Favorite trailer"
+                      onClick={() => toggleFav("trailers", t.id)}><Icon name="heart" size={16} filled={favs.trailers.includes(t.id)} /></button>
+                  </div>
+                  <p className="mono tr-date"><Icon name="calendar" size={14} /> {fmtDate(t.date)} {t.duration ? `· ${t.duration}` : ""}</p>
+                  <p className="tr-desc">{t.desc}</p>
+                  <div className="tr-actions">
+                    <button className="btn btn-solid" onClick={() => openVideo(t)}><Icon name="play" size={15} /> Watch Now</button>
+                    {t.yt && (
+                      <a className="icon-btn big" href={`https://www.youtube.com/watch?v=${t.yt}`} target="_blank" rel="noopener noreferrer" aria-label="Open on YouTube" title="Open on YouTube">
+                        <Icon name="youtube" size={18} />
+                      </a>
+                    )}
+                    {t.url && <ExtLink href={t.url} className="btn btn-ghost" icon="external">Official page</ExtLink>}
+                    <ShareBar title={t.title} text={t.desc} compact />
+                  </div>
+                </div>
+              </article>
+            </Reveal>
+          ))}
+        </div>
+        <Reveal className="center-cta">
+          <ExtLink href="https://www.rockstargames.com/VI/media/videos" className="btn btn-ghost" icon="external">View all official videos</ExtLink>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+function VideoModal({ trailer, onClose }) {
+  const closeRef = useRef(null);
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+  }, [onClose]);
+  if (!trailer) return null;
+  return (
+    <div className="modal-back" role="dialog" aria-modal="true" aria-label={trailer.title} onClick={onClose}>
+      <div className="modal video-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-head">
+          <div>
+            <h3>{trailer.title}</h3>
+            <p className="mono muted">{fmtDate(trailer.date)} {trailer.duration ? `· ${trailer.duration}` : ""}</p>
+          </div>
+          <button className="icon-btn" ref={closeRef} onClick={onClose} aria-label="Close video"><Icon name="close" size={18} /></button>
+        </div>
+        {trailer.yt ? (
+          <div className="video-frame">
+            <iframe title={trailer.title} loading="lazy" allowFullScreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              src={`https://www.youtube-nocookie.com/embed/${trailer.yt}?autoplay=1&rel=0`} />
+          </div>
+        ) : (
+          <div className="video-alt">
+            <ArtPlate art="ocean" label={false} />
+            <p>This trailer premiered on Rockstar's official website rather than YouTube.</p>
+            <ExtLink href={trailer.url} className="btn btn-solid" icon="external">Watch on rockstargames.com</ExtLink>
+          </div>
+        )}
+        <div className="modal-foot"><ShareBar title={trailer.title} text={trailer.desc} compact /></div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================ CHARACTERS ================================== */
+function CharacterSection({ favs, toggleFav, openChar }) {
+  return (
+    <section className="sec" id="characters">
+      <div className="wrap">
+        <SectionHead kicker="Case file 003" title="MEET THE" accent="CAST"
+          lead="Protagonists and featured characters from official promotional material. Profiles stick strictly to confirmed information." />
+        <div className="grid g4">
+          {CHARACTERS.map((c, i) => (
+            <Reveal key={c.id} delay={i * 45}>
+              <article className={`card char-card ${c.main ? "main" : ""}`}>
+                <div className="char-art"><ArtPlate art={c.art} label={false} /><span className="char-role">{c.role}</span></div>
+                <h3>{c.name}</h3>
+                <p>{c.desc}</p>
+                <div className="char-actions">
+                  <button className="btn btn-ghost sm" onClick={() => openChar(c)}>View More</button>
+                  <button className={`icon-btn ${favs.characters.includes(c.id) ? "on" : ""}`} aria-label={`Favorite ${c.name}`}
+                    onClick={() => toggleFav("characters", c.id)}><Icon name="heart" size={16} filled={favs.characters.includes(c.id)} /></button>
+                  <button className="icon-btn" aria-label={`Share ${c.name}`} onClick={() => shareItem({ title: `${c.name} — GTA VI`, text: c.desc })}><Icon name="share" size={16} /></button>
+                </div>
+              </article>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+function CharacterModal({ char, onClose }) {
+  const closeRef = useRef(null);
+  useEffect(() => {
+    const onKey = (e) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey); document.body.style.overflow = "hidden"; closeRef.current?.focus();
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+  }, [onClose]);
+  if (!char) return null;
+  return (
+    <div className="modal-back" role="dialog" aria-modal="true" aria-label={char.name} onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-head">
+          <h3>{char.name}</h3>
+          <button className="icon-btn" ref={closeRef} onClick={onClose} aria-label="Close"><Icon name="close" size={18} /></button>
+        </div>
+        <div className="char-modal-grid">
+          <ArtPlate art={char.art} label={false} className="char-modal-art" />
+          <div>
+            <span className="badge b-co">{char.role}</span>
+            <p className="lead" style={{ marginTop: ".8rem" }}>{char.desc}</p>
+            <p className="muted small">Only information confirmed by official Rockstar material is shown here. No invented backstories, relationships or abilities.</p>
+            <ShareBar title={`${char.name} — GTA VI`} text={char.desc} compact />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================ LOCATIONS =================================== */
+function LocationSection({ favs, toggleFav, openLoc }) {
+  return (
+    <section className="sec" id="locations">
+      <div className="wrap">
+        <SectionHead kicker="Case file 004" title="EXPLORE" accent="LEONIDA"
+          lead="Regions named in official Rockstar promotional material. Descriptions are editorial summaries — geographic speculation is never presented as fact." />
+      </div>
+      <div className="hscroll wrap-wide" tabIndex={0} aria-label="Locations of Leonida, horizontal scroll">
+        {LOCATIONS.map((l, i) => (
+          <Reveal key={l.id} delay={i * 60} className="hscroll-item">
+            <article className="card loc-card">
+              <ArtPlate art={l.art} label={false} className="loc-art" />
+              <div className="loc-body">
+                <span className="badge b-ok">Officially named</span>
+                <h3>{l.name}</h3>
+                <p>{l.desc}</p>
+                <div className="char-actions">
+                  <button className="btn btn-solid sm" onClick={() => openLoc(l)}>Explore</button>
+                  <button className={`icon-btn ${favs.locations.includes(l.id) ? "on" : ""}`} aria-label={`Favorite ${l.name}`}
+                    onClick={() => toggleFav("locations", l.id)}><Icon name="heart" size={16} filled={favs.locations.includes(l.id)} /></button>
+                  <button className="icon-btn" aria-label={`Share ${l.name}`} onClick={() => shareItem({ title: `${l.name} — Leonida`, text: l.desc })}><Icon name="share" size={16} /></button>
+                </div>
+              </div>
+            </article>
+          </Reveal>
+        ))}
+      </div>
+    </section>
+  );
+}
+function LocationModal({ loc, onClose }) {
+  const closeRef = useRef(null);
+  useEffect(() => {
+    const onKey = (e) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey); document.body.style.overflow = "hidden"; closeRef.current?.focus();
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+  }, [onClose]);
+  if (!loc) return null;
+  return (
+    <div className="modal-back" role="dialog" aria-modal="true" aria-label={loc.name} onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-head">
+          <h3>{loc.name}</h3>
+          <button className="icon-btn" ref={closeRef} onClick={onClose} aria-label="Close"><Icon name="close" size={18} /></button>
+        </div>
+        <ArtPlate art={loc.art} className="loc-modal-art" />
+        <span className="badge b-ok">Officially named region</span>
+        <p className="lead" style={{ marginTop: ".8rem" }}>{loc.desc}</p>
+        <p className="muted small">Visual is a fan-made interpretation. Official screenshots: rockstargames.com/VI/media.</p>
+        <ShareBar title={`${loc.name} — Leonida`} text={loc.desc} compact />
+      </div>
+    </div>
+  );
+}
+
+/* ============================= GALLERY ==================================== */
+function MediaGallery() {
+  const [cat, setCat] = useState("All");
+  const [idx, setIdx] = useState(null);
+  const items = useMemo(() => cat === "All" ? GALLERY : GALLERY.filter((g) => g.cat === cat), [cat]);
+  useEffect(() => {
+    if (idx === null) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") setIdx(null);
+      if (e.key === "ArrowRight") setIdx((i) => (i + 1) % items.length);
+      if (e.key === "ArrowLeft") setIdx((i) => (i - 1 + items.length) % items.length);
+    };
+    document.addEventListener("keydown", onKey); document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+  }, [idx, items.length]);
+  const current = idx !== null ? items[idx] : null;
+  return (
+    <section className="sec" id="gallery">
+      <div className="wrap">
+        <SectionHead kicker="Case file 005" title="MEDIA" accent="GALLERY"
+          lead="Official video key visuals plus clearly labelled fan-interpretation plates. Genuine screenshots live on Rockstar's official media page." />
+        <Reveal className="filters" role="group" aria-label="Gallery categories">
+          {GALLERY_CATS.map((c) => (
+            <button key={c} className={`chip ${cat === c ? "on" : ""}`} onClick={() => { setCat(c); setIdx(null); }}>{c}</button>
+          ))}
+        </Reveal>
+        <div className="masonry">
+          {items.map((g, i) => (
+            <Reveal key={g.id} delay={(i % 4) * 60} className="masonry-item">
+              <button className="gal-btn" onClick={() => setIdx(i)} aria-label={`Open ${g.title}`}>
+                {g.kind === "yt"
+                  ? <Thumb yt={g.yt} alt={g.alt} />
+                  : <ArtPlate art={g.art} label={false} />}
+                <span className="gal-cap"><b>{g.title}</b><small>{g.cat}</small></span>
+              </button>
+            </Reveal>
+          ))}
+        </div>
+        <Reveal className="center-cta">
+          <ExtLink href="https://www.rockstargames.com/VI/media" className="btn btn-ghost" icon="image">Official screenshots &amp; artwork</ExtLink>
+        </Reveal>
+      </div>
+      {current && (
+        <div className="modal-back" role="dialog" aria-modal="true" aria-label={current.title} onClick={() => setIdx(null)}>
+          <div className="modal lightbox" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-head">
+              <div><h3>{current.title}</h3><p className="mono muted">{current.cat} · {idx + 1} / {items.length}</p></div>
+              <div className="lb-nav">
+                <button className="icon-btn" aria-label="Previous image" onClick={() => setIdx((i) => (i - 1 + items.length) % items.length)}><Icon name="left" size={18} /></button>
+                <button className="icon-btn" aria-label="Close" onClick={() => setIdx(null)}><Icon name="close" size={18} /></button>
+                <button className="icon-btn" aria-label="Next image" onClick={() => setIdx((i) => (i + 1) % items.length)}><Icon name="right" size={18} /></button>
+              </div>
+            </div>
+            <div className="lb-stage">
+              {current.kind === "yt" ? <Thumb yt={current.yt} alt={current.alt} /> : <ArtPlate art={current.art} label={false} />}
+            </div>
+            <p className="muted small lb-cap">{current.alt}{current.kind !== "yt" && " — fan-made interpretation, not an official screenshot."}</p>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/* ============================= VIRAL HUB ================================== */
+function ViralHub() {
+  const [filter, setFilter] = useState("ALL");
+  const FILTERS = ["ALL", "REDDIT", "YOUTUBE", "TIKTOK", "INSTAGRAM", "X", "NEWS"];
+  const platforms = VIRAL_PLATFORMS.filter((p) => filter === "ALL" || p.platform === filter);
+  const cats = VIRAL_CATEGORIES.filter((c) => filter === "ALL" || c.platform === filter);
+  return (
+    <section className="sec viral" id="viral">
+      <div className="wrap">
+        <SectionHead kicker="The pulse" title="GTA VI VIRAL" accent="HUB"
+          lead="WHAT THE INTERNET IS TALKING ABOUT. Live discovery links to public platform searches — no fabricated stats, no fake rankings." />
+        <Reveal className="filters" role="group" aria-label="Filter viral platforms">
+          {FILTERS.map((f) => (
+            <button key={f} className={`chip ${filter === f ? "on" : ""}`} onClick={() => setFilter(f)}>{f}</button>
+          ))}
+        </Reveal>
+        <div className="grid g3" style={{ marginTop: "1.4rem" }}>
+          {platforms.map((p, i) => (
+            <Reveal key={p.id} delay={i * 55}>
+              <article className="card viral-card">
+                <span className={`viral-ic p-${p.platform.toLowerCase()}`}><Icon name={p.icon} size={22} /></span>
+                <span className="badge">{p.platform}</span>
+                <h3>{p.title}</h3>
+                <p className="muted small">{p.cat}</p>
+                <p>{p.desc}</p>
+                <div className="tr-actions">
+                  <ExtLink href={p.url} className="btn btn-solid sm" icon="external">Explore</ExtLink>
+                  <button className="icon-btn" aria-label={`Share ${p.title}`} onClick={() => shareItem({ title: p.title, text: p.desc, url: p.url })}><Icon name="share" size={16} /></button>
+                  <button className="icon-btn" aria-label="Copy link" onClick={async () => { const ok = await copyText(p.url); toast(ok ? "Link copied" : "Copy failed", ok ? "#22d9ff" : "#ff2e88"); }}><Icon name="copy" size={16} /></button>
+                </div>
+              </article>
+            </Reveal>
+          ))}
+        </div>
+        <h3 className="h3 sub">Viral categories</h3>
+        <div className="grid g4">
+          {cats.map((c, i) => (
+            <Reveal key={c.name} delay={i * 45}>
+              <a className="card cat-card" href={c.url} target="_blank" rel="noopener noreferrer nofollow">
+                <span className="viral-ic sm"><Icon name={c.icon} size={18} /></span>
+                <b>{c.name}</b>
+                <span className="muted small">{c.desc}</span>
+                <span className="cat-go mono">{c.platform} <Icon name="external" size={13} /></span>
+              </a>
+            </Reveal>
+          ))}
+        </div>
+        <h3 className="h3 sub">Curated highlights <span className="badge b-rep">Community content · unverified</span></h3>
+        <div className="grid g2">
+          {CURATED.map((c, i) => (
+            <Reveal key={c.title} delay={i * 60}>
+              <article className="card cur-card">
+                <div>
+                  <b>{c.title}</b>
+                  <p className="muted small mono">Source: {c.source} · Last reviewed: {fmtDate(c.reviewed)}</p>
+                </div>
+                <div className="tr-actions">
+                  <span className="badge">{c.platform}</span>
+                  <ExtLink href={c.url} className="btn btn-ghost sm" icon="external">Open</ExtLink>
+                </div>
+              </article>
+            </Reveal>
+          ))}
+        </div>
+        <p className="muted small note">
+          These buttons open public search pages on each platform so you can discover current posts yourself.
+          VICE CITY PULSE does not track, scrape or aggregate engagement metrics, and never links to leaks,
+          suspicious downloads or pirated content.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ============================== NEWS ====================================== */
+function NewsSection() {
+  return (
+    <section className="sec" id="news">
+      <div className="wrap">
+        <SectionHead kicker="Case file 006" title="LATEST FROM" accent="ROCKSTAR"
+          lead="A manually maintained list of official milestones. It does not update automatically — check the official sources for live news." />
+        <div className="grid g3">
+          {NEWS.map((n, i) => (
+            <Reveal key={n.title} delay={i * 55}>
+              <article className="card news-card">
+                <p className="mono muted small"><Icon name="calendar" size={14} /> {fmtDate(n.date)} · {n.source}</p>
+                <h3>{n.title}</h3>
+                <p>{n.summary}</p>
+                <ExtLink href={n.url} className="btn btn-ghost sm" icon="external">Read more</ExtLink>
+              </article>
+            </Reveal>
+          ))}
+        </div>
+        <Reveal className="center-cta">
+          <ExtLink href="https://www.rockstargames.com/newswire?tag=vi" className="btn btn-solid" icon="check">Check official updates</ExtLink>
+          <ExtLink href="https://www.rockstargames.com/VI" className="btn btn-ghost" icon="external">Official GTA VI site</ExtLink>
+          <ExtLink href="https://www.rockstargames.com/VI/media" className="btn btn-ghost" icon="image">Official media</ExtLink>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ============================ COMMUNITY =================================== */
+function CommunitySection() {
+  const [subs, setSubs] = useLocalStorage("vcp:subs", []);
+  const [form, setForm] = useState({ title: "", url: "", platform: "Reddit" });
+  const [err, setErr] = useState("");
+  const submit = (e) => {
+    e.preventDefault();
+    let u;
+    try { u = new URL(form.url); if (!/^https?:$/.test(u.protocol)) throw new Error(); }
+    catch { setErr("Please enter a valid http(s) URL, e.g. https://www.reddit.com/r/GTA6/…"); return; }
+    if (!form.title.trim()) { setErr("Please give your link a title."); return; }
+    setErr("");
+    setSubs((prev) => [{ id: Date.now(), title: form.title.trim(), url: u.href, platform: form.platform, added: new Date().toISOString().slice(0, 10) }, ...prev].slice(0, 30));
+    setForm({ title: "", url: "", platform: "Reddit" });
+    toast("Saved to your personal submissions (this browser only)", "#b6ff3d");
+  };
+  return (
+    <section className="sec" id="community">
+      <div className="wrap">
+        <SectionHead kicker="Case file 007" title="COMMUNITY" accent="PULSE"
+          lead="Where the fandom lives — plus a personal link box saved in your browser's LocalStorage." />
+        <div className="grid g3">
+          {COMMUNITY_LINKS.map((c, i) => (
+            <Reveal key={c.name} delay={i * 50}>
+              <a className="card cat-card" href={c.url} target="_blank" rel="noopener noreferrer nofollow">
+                <span className="viral-ic sm"><Icon name={c.icon} size={18} /></span>
+                <b>{c.name}</b><span className="muted small">{c.desc}</span>
+                <span className="cat-go mono">Open <Icon name="external" size={13} /></span>
+              </a>
+            </Reveal>
+          ))}
+        </div>
+        <div className="split" style={{ marginTop: "1.6rem" }}>
+          <Reveal>
+            <form className="card submit-card" onSubmit={submit} noValidate>
+              <h3 className="h3">Submit a community link</h3>
+              <p className="muted small">Saved to LocalStorage — visible only in this browser. Nothing is published to a shared database.</p>
+              <label className="fld"><span>Title</span>
+                <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Amazing Leonida breakdown" required /></label>
+              <label className="fld"><span>URL</span>
+                <input value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} type="url" placeholder="https://…" required aria-invalid={err ? "true" : "false"} /></label>
+              <label className="fld"><span>Platform</span>
+                <select value={form.platform} onChange={(e) => setForm({ ...form, platform: e.target.value })}>
+                  {["Reddit", "YouTube", "TikTok", "X", "Instagram", "News", "Other"].map((p) => <option key={p}>{p}</option>)}
+                </select></label>
+              {err && <p className="err" role="alert">{err}</p>}
+              <button className="btn btn-solid" type="submit"><Icon name="link" size={16} /> Save link</button>
+            </form>
+          </Reveal>
+          <Reveal delay={80}>
+            <div className="card" style={{ height: "100%" }}>
+              <h3 className="h3">Your submissions <span className="badge">{subs.length}</span></h3>
+              {subs.length === 0 && <p className="muted small">Nothing saved yet.</p>}
+              <ul className="sub-list">
+                {subs.map((s) => (
+                  <li key={s.id}>
+                    <div>
+                      <b>{s.title}</b>
+                      <p className="muted small mono">{s.platform} · saved {fmtDate(s.added)}</p>
+                    </div>
+                    <div className="tr-actions">
+                      <a className="icon-btn" href={s.url} target="_blank" rel="noopener noreferrer" aria-label="Open saved link"><Icon name="external" size={15} /></a>
+                      <button className="icon-btn" aria-label="Delete saved link" onClick={() => setSubs((prev) => prev.filter((x) => x.id !== s.id))}><Icon name="trash" size={15} /></button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================== FAQ ======================================= */
+function FAQSection() {
+  const [open, setOpen] = useState(0);
+  return (
+    <section className="sec" id="faq">
+      <div className="wrap">
+        <SectionHead kicker="Case file 008" title="FREQUENTLY" accent="ASKED" lead="Confirmed answers, linked to official sources." />
+        <div className="faq">
+          {FAQ.map((f, i) => (
+            <Reveal key={f.q} delay={i * 40}>
+              <div className={`q ${open === i ? "open" : ""}`}>
+                <button aria-expanded={open === i} onClick={() => setOpen(open === i ? -1 : i)}>
+                  <span>{f.q}</span><span className="pm" aria-hidden="true" />
+                </button>
+                <div className="a" style={{ maxHeight: open === i ? "220px" : 0 }}>
+                  <div className="a-in">
+                    <p>{f.a}</p>
+                    {f.link && <a href={f.link.url} target="_blank" rel="noopener noreferrer">{f.link.url.replace(/^https?:\/\//, "")} <Icon name="external" size={13} /></a>}
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================= SEARCH ===================================== */
+function SearchModal({ onClose }) {
+  const [q, setQ] = useState("");
+  const inputRef = useRef(null);
+  useEffect(() => {
+    const onKey = (e) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey); document.body.style.overflow = "hidden";
+    inputRef.current?.focus();
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+  }, [onClose]);
+  const index = useMemo(() => {
+    const rows = [];
+    rows.push({ type: "Game info", title: GAME.title, snippet: `${GAME.genre} · ${GAME.setting}`, section: "info" });
+    rows.push({ type: "Game info", title: "Platforms", snippet: GAME.platforms.join(", "), section: "info" });
+    rows.push({ type: "Game info", title: "Release date", snippet: fmtDate(GAME.releaseDate), section: "info" });
+    CHARACTERS.forEach((c) => rows.push({ type: "Character", title: c.name, snippet: c.role, section: "characters" }));
+    LOCATIONS.forEach((l) => rows.push({ type: "Location", title: l.name, snippet: l.desc, section: "locations" }));
+    TRAILERS.forEach((t) => rows.push({ type: "Trailer", title: t.title, snippet: `${fmtDate(t.date)} · ${t.desc}`, section: "trailers" }));
+    FAQ.forEach((f) => rows.push({ type: "FAQ", title: f.q, snippet: f.a, section: "faq" }));
+    NEWS.forEach((n) => rows.push({ type: "Announcement", title: n.title, snippet: n.summary, section: "news" }));
+    VIRAL_PLATFORMS.forEach((v) => rows.push({ type: "Viral hub", title: v.title, snippet: v.desc, section: "viral" }));
+    VIRAL_CATEGORIES.forEach((v) => rows.push({ type: "Viral hub", title: v.name, snippet: v.desc, section: "viral" }));
+    return rows;
+  }, []);
+  const results = q.trim().length < 2 ? [] : index.filter((r) =>
+    (r.title + " " + r.snippet + " " + r.type).toLowerCase().includes(q.toLowerCase())).slice(0, 14);
+  const go = (section) => { onClose(); setTimeout(() => document.getElementById(section)?.scrollIntoView({ behavior: "smooth" }), 60); };
+  return (
+    <div className="modal-back" role="dialog" aria-modal="true" aria-label="Site search" onClick={onClose}>
+      <div className="modal search-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="search-head">
+          <Icon name="search" size={20} />
+          <input ref={inputRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search games info, characters, trailers, FAQ, viral links…" aria-label="Search" />
+          <button className="icon-btn" onClick={onClose} aria-label="Close search"><Icon name="close" size={18} /></button>
+        </div>
+        <div className="search-body">
+          {q.trim().length < 2 && <p className="muted small">Type at least two characters. Try “Lucia”, “launch trailer”, “Vice City”, “PC” or “memes”.</p>}
+          {q.trim().length >= 2 && results.length === 0 && <p className="muted small">No matches for “{q}”.</p>}
+          {results.map((r, i) => (
+            <button key={i} className="search-row" onClick={() => go(r.section)}>
+              <span className="badge b-co">{r.type}</span>
+              <span className="sr-txt"><b>{r.title}</b><small>{r.snippet}</small></span>
+              <Icon name="right" size={15} />
+            </button>
+          ))}
+        </div>
+        <p className="muted small search-foot mono">ESC to close · client-side instant search</p>
+      </div>
+    </div>
+  );
+}
+
+/* ============================= FOOTER ===================================== */
+function Footer() {
+  const go = (id) => (e) => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }); };
+  return (
+    <footer>
+      <div className="wrap">
+        <div className="f-grid">
+          <div className="f-col">
+            <span className="brand"><span className="mark"><span>VI</span></span><span className="brand-txt"><b>VICE CITY PULSE</b><small>{CONFIG.tagline}</small></span></span>
+            <p className="muted small">Cinematic homepage, official trailers, Leonida exploration, viral discovery and community links — all in one static, privacy-friendly page.</p>
+            <ShareBar title="VICE CITY PULSE" text="The ultimate GTA VI fan hub." compact />
+          </div>
+          <div className="f-col">
+            <h4>Quick links</h4>
+            {[["home", "Home"], ["info", "Game Info"], ["trailers", "Trailers"], ["characters", "Characters"], ["viral", "Viral Hub"], ["news", "Official News"], ["community", "Community"]].map(([id, l]) => (
+              <a key={id} href={`#${id}`} onClick={go(id)}>{l}</a>
+            ))}
+          </div>
+          <div className="f-col">
+            <h4>Official external links</h4>
+            <a href="https://www.rockstargames.com" target="_blank" rel="noopener noreferrer">Rockstar Games</a>
+            <a href="https://www.rockstargames.com/newswire?tag=vi" target="_blank" rel="noopener noreferrer">Rockstar Newswire</a>
+            <a href="https://www.rockstargames.com/VI/media" target="_blank" rel="noopener noreferrer">Official GTA VI Media</a>
+            <a href="https://www.youtube.com/rockstargames" target="_blank" rel="noopener noreferrer">Rockstar YouTube</a>
+          </div>
+          <div className="f-col">
+            <h4>Explore</h4>
+            <a href="#locations" onClick={go("locations")}>Locations</a>
+            <a href="#gallery" onClick={go("gallery")}>Gallery</a>
+            <a href="#faq" onClick={go("faq")}>FAQ</a>
+            <a href="#home" onClick={go("home")}>Back to top</a>
+          </div>
+        </div>
+        <p className="disclaimer">
+          VICE CITY PULSE is an independent fan-made information website. It is not affiliated with, endorsed by, or sponsored by
+          Rockstar Games or Take-Two Interactive. Grand Theft Auto, GTA VI, and related trademarks and assets belong to their
+          respective owners. Video thumbnails are served from YouTube for the official Rockstar videos; all other visuals on this
+          page are original CSS/SVG fan interpretations clearly labelled as such.
+        </p>
+        <div className="f-bot">
+          <span>© {new Date().getFullYear()} VICE CITY PULSE — original design &amp; code by this project. No ownership claimed over Rockstar content.</span>
+          <span className="mono">Release config: {fmtDate(CONFIG.releaseDate)}</span>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+/* ============================== APP ======================================= */
+export default function App() {
+  const [theme, setTheme] = useLocalStorage("vcp:theme", "dark");
+  const [favs, setFavs] = useLocalStorage("vcp:favs", { trailers: [], characters: [], locations: [] });
+  const [video, setVideo] = useState(null);
+  const [charModal, setCharModal] = useState(null);
+  const [locModal, setLocModal] = useState(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [toasts, setToasts] = useState([]);
+
+  useEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]);
+  useEffect(() => {
+    const onToast = (e) => {
+      const id = Date.now() + Math.random();
+      setToasts((t) => [...t, { id, ...e.detail }]);
+      setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4200);
+    };
+    window.addEventListener("vcp:toast", onToast);
+    return () => window.removeEventListener("vcp:toast", onToast);
+  }, []);
+  useEffect(() => {
+    const onKey = (e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setSearchOpen(true); } };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
+  /* SEO injection (title, meta, OG, Twitter, canonical, JSON-LD) */
+  useEffect(() => {
+    document.title = "GTA 6 / GTA VI Hub — Release Date, Trailers, Characters, Vice City & Viral Videos | VICE CITY PULSE";
+    const setMeta = (attr, key, content) => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`);
+      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
+      el.setAttribute("content", content);
+    };
+    setMeta("name", "description", "VICE CITY PULSE — the ultimate GTA VI fan hub: November 19 2026 release countdown, official Trailer 1, Trailer 2, Extended Look & Launch Trailer, Jason Duval and Lucia Caminos profiles, Leonida locations, viral memes, news and community links.");
+    setMeta("name", "keywords", "GTA 6, GTA VI, GTA 6 release date, GTA VI trailers, GTA 6 Trailer 2, GTA 6 Launch Trailer, GTA 6 characters, GTA 6 Jason, GTA 6 Lucia, GTA 6 Vice City, GTA 6 viral videos, GTA 6 memes, GTA 6 news, GTA VI gameplay");
+    setMeta("name", "robots", "index, follow");
+    setMeta("name", "theme-color", "#05060f");
+    setMeta("property", "og:type", "website");
+    setMeta("property", "og:site_name", CONFIG.siteName);
+    setMeta("property", "og:title", "VICE CITY PULSE — The Ultimate GTA VI Fan Hub");
+    setMeta("property", "og:description", "Release countdown, official trailers, Leonida locations, cast dossiers, viral hub and community links for Grand Theft Auto VI.");
+    setMeta("property", "og:url", CONFIG.canonicalBase);
+    setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:title", "VICE CITY PULSE — GTA VI Fan Hub");
+    setMeta("name", "twitter:description", "Everything GTA VI: trailers, Leonida, characters, viral discovery.");
+    let can = document.querySelector('link[rel="canonical"]');
+    if (!can) { can = document.createElement("link"); can.rel = "canonical"; document.head.appendChild(can); }
+    can.href = CONFIG.canonicalBase;
+    const ld = {
+      "@context": "https://schema.org",
+      "@graph": [
+        { "@type": "WebSite", name: CONFIG.siteName, url: CONFIG.canonicalBase, description: "Independent GTA VI fan information hub." },
+        {
+          "@type": "VideoGame", name: "Grand Theft Auto VI", alternateName: ["GTA 6", "GTA VI"],
+          publisher: { "@type": "Organization", name: "Rockstar Games" },
+          datePublished: CONFIG.releaseDate, gamePlatform: ["PlayStation 5", "Xbox Series X", "Xbox Series S"],
+          genre: ["Open-world", "Action-adventure"],
+          character: [{ "@type": "Person", name: "Lucia Caminos" }, { "@type": "Person", name: "Jason Duval" }],
+        },
+        ...TRAILERS.filter((t) => t.yt).map((t) => ({
+          "@type": "VideoObject", name: t.title, uploadDate: t.date,
+          embedUrl: `https://www.youtube-nocookie.com/embed/${t.yt}`,
+          url: `https://www.youtube.com/watch?v=${t.yt}`, description: t.desc,
+        })),
+        {
+          "@type": "FAQPage",
+          mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+        },
+      ],
+    };
+    let script = document.getElementById("vcp-ld");
+    if (!script) { script = document.createElement("script"); script.type = "application/ld+json"; script.id = "vcp-ld"; document.head.appendChild(script); }
+    script.textContent = JSON.stringify(ld);
+  }, []);
+
+  const toggleFav = useCallback((kind, id) => {
+    setFavs((prev) => {
+      const has = prev[kind].includes(id);
+      toast(has ? "Removed from favorites" : "Added to favorites", has ? "#9aa3c7" : "#ff2e88");
+      return { ...prev, [kind]: has ? prev[kind].filter((x) => x !== id) : [...prev[kind], id] };
+    });
+  }, [setFavs]);
+
+  const launchTrailer = TRAILERS.find((t) => t.id === "launch-trailer");
+
+  return (
+    <div className="app-shell">
+      <style>{STYLES}</style>
+      <a className="skip" href="#info">Skip to content</a>
+      <Header
+        onSearch={() => setSearchOpen(true)}
+        onShare={() => shareItem({ title: "VICE CITY PULSE — the GTA VI fan hub", text: "Trailers, Leonida, viral hub & more." })}
+        favs={favs} theme={theme} setTheme={setTheme}
+      />
+      <main>
+        <Hero onWatchLaunch={() => setVideo(launchTrailer)} />
+        <GameInfo />
+        <TrailerGallery favs={favs} toggleFav={toggleFav} openVideo={setVideo} />
+        <CharacterSection favs={favs} toggleFav={toggleFav} openChar={setCharModal} />
+        <LocationSection favs={favs} toggleFav={toggleFav} openLoc={setLocModal} />
+        <MediaGallery />
+        <ViralHub />
+        <NewsSection />
+        <CommunitySection />
+        <FAQSection />
+      </main>
+      <Footer />
+      {video && <VideoModal trailer={video} onClose={() => setVideo(null)} />}
+      {charModal && <CharacterModal char={charModal} onClose={() => setCharModal(null)} />}
+      {locModal && <LocationModal loc={locModal} onClose={() => setLocModal(null)} />}
+      {searchOpen && <SearchModal onClose={() => setSearchOpen(false)} />}
+      <button className="top-fab" aria-label="Back to top"
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}><Icon name="up" size={18} /></button>
+      <div className="toast-host" role="status" aria-live="polite">
+        {toasts.map((t) => <div key={t.id} style={{ borderLeftColor: t.color || "#22d9ff" }}>{t.msg}</div>)}
+      </div>
+    </div>
+  );
+}
+
+/* ============================== STYLES ==================================== */
+const STYLES = `
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/anton@5/index.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/barlow-condensed@5/500.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/barlow-condensed@5/700.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5/index.css');
+:root{
+  --bg:#05060f; --bg2:#0a0c1c; --panel:rgba(255,255,255,.045); --panel2:rgba(255,255,255,.02);
+  --line:rgba(255,255,255,.10); --line2:rgba(255,255,255,.2);
+  --text:#eef0ff; --muted:#9aa3c7;
+  --pink:#ff2e88; --purple:#8b5cf6; --cyan:#22d9ff; --orange:#ff8a3d; --lime:#b6ff3d; --amber:#ffb020;
+  --fd:'Anton',Impact,sans-serif; --fc:'Barlow Condensed',sans-serif; --fb:'Space Grotesk',system-ui,sans-serif;
+  --nav-h:68px; --r:18px;
+}
+[data-theme="light"]{
+  --bg:#f2f0fb; --bg2:#ffffff; --panel:rgba(24,20,70,.05); --panel2:rgba(24,20,70,.03);
+  --line:rgba(24,20,70,.14); --line2:rgba(24,20,70,.26);
+  --text:#171a33; --muted:#565d85;
+  --pink:#d61f6f; --purple:#6d28d9; --cyan:#0891b2; --orange:#ea580c; --lime:#4d7c0f; --amber:#b45309;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--fb);line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.app-shell{min-height:100vh}
+img,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+::selection{background:var(--pink);color:#fff}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:6px}
+.wrap{width:min(100% - 40px,1220px);margin-inline:auto}
+.wrap-wide{width:min(100% - 32px,1360px);margin-inline:auto}
+section{scroll-margin-top:92px;position:relative}
+.sec{padding:clamp(4.2rem,9vw,7rem) 0}
+.skip{position:absolute;left:-9999px;top:0;background:var(--pink);color:#fff;padding:.6rem 1rem;border-radius:0 0 10px 0;z-index:200}
+.skip:focus{left:0}
+.mono{font-family:var(--fc);letter-spacing:.06em;font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)} .small{font-size:.8rem}
+h1,h2,h3,h4{font-family:var(--fd);font-weight:400;line-height:.98;margin:0;letter-spacing:.01em}
+.h2{font-size:clamp(2.2rem,6vw,4.2rem);text-transform:uppercase}
+.h3{font-family:var(--fc);font-weight:700;font-size:1.35rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text)}
+.h3.sub{margin:2.4rem 0 1rem;display:flex;gap:.7rem;align-items:center;flex-wrap:wrap}
+.grad{background:linear-gradient(96deg,var(--amber),var(--pink) 40%,var(--purple) 70%,var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.kicker{font-family:var(--fc);text-transform:uppercase;letter-spacing:.32em;font-size:.76rem;color:var(--pink);display:inline-flex;align-items:center;gap:.6rem;font-weight:700}
+.kicker::before{content:"";width:26px;height:2px;background:linear-gradient(90deg,var(--pink),var(--cyan));border-radius:2px}
+.lead{color:var(--muted);font-size:1.02rem;max-width:56ch}
+.sec-head{display:flex;flex-wrap:wrap;gap:1.3rem;align-items:flex-end;justify-content:space-between;margin-bottom:2.4rem}
+.badge{display:inline-flex;align-items:center;gap:.4rem;font-family:var(--fc);text-transform:uppercase;letter-spacing:.14em;font-size:.68rem;font-weight:700;padding:.28rem .62rem;border-radius:999px;border:1px solid var(--line2);color:var(--muted);white-space:nowrap}
+.b-ok{color:var(--lime);border-color:color-mix(in srgb,var(--lime) 45%,transparent);background:color-mix(in srgb,var(--lime) 10%,transparent)}
+.b-rep{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,transparent);background:color-mix(in srgb,var(--amber) 10%,transparent)}
+.b-co{color:var(--cyan);border-color:color-mix(in srgb,var(--cyan) 40%,transparent);background:color-mix(in srgb,var(--cyan) 10%,transparent)}
+.b-rum{color:var(--pink);border-color:color-mix(in srgb,var(--pink) 45%,transparent);background:color-mix(in srgb,var(--pink) 10%,transparent)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;font-family:var(--fc);text-transform:uppercase;letter-spacing:.14em;font-weight:700;font-size:.84rem;padding:.76rem 1.3rem;border-radius:12px;border:1px solid transparent;cursor:pointer;transition:transform .2s,box-shadow .3s,border-color .3s,background .3s}
+.btn.sm{padding:.5rem .9rem;font-size:.76rem}
+.btn-solid{background:linear-gradient(100deg,var(--pink),var(--purple));color:#fff;box-shadow:0 12px 34px -12px color-mix(in srgb,var(--pink) 80%,transparent)}
+.btn-solid:hover{transform:translateY(-2px)}
+.btn-ghost{border-color:var(--line2);background:var(--panel);color:var(--text)}
+.btn-ghost:hover{border-color:var(--cyan);transform:translateY(-2px)}
+.icon-btn{width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:var(--panel);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:.25s;position:relative;flex:0 0 auto}
+.icon-btn:hover{color:#fff;border-color:var(--cyan)}
+.icon-btn.on{color:var(--pink);border-color:var(--pink)}
+.icon-btn.big{width:44px;height:44px}
+.card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:var(--r);padding:1.4rem;position:relative;overflow:hidden;transition:transform .35s cubic-bezier(.2,.7,.2,1),border-color .3s,box-shadow .35s}
+.card:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--pink) 45%,transparent);box-shadow:0 24px 60px -30px color-mix(in srgb,var(--pink) 70%,transparent)}
+.grid{display:grid;gap:1.05rem}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
+.split{display:grid;gap:1.2rem;grid-template-columns:1.05fr .95fr}
+@media(max-width:900px){.split{grid-template-columns:1fr}}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+.center-cta{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap;margin-top:1.8rem}
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:90;display:flex;align-items:center;transition:background .35s,border-color .35s;border-bottom:1px solid transparent;backdrop-filter:blur(6px)}
+.nav.scrolled{background:color-mix(in srgb,var(--bg) 82%,transparent);border-bottom-color:var(--line);backdrop-filter:blur(14px)}
+.nav-in{display:flex;align-items:center;gap:1rem;width:min(100% - 32px,1360px);margin-inline:auto}
+.brand{display:flex;align-items:center;gap:.6rem;font-family:var(--fd)}
+.brand .mark{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(140deg,var(--amber),var(--pink) 55%,var(--purple));color:#140611;font-size:1.05rem;box-shadow:0 6px 22px -6px color-mix(in srgb,var(--pink) 80%,transparent)}
+.brand-txt b{font-size:.98rem;letter-spacing:.04em;display:block}
+.brand-txt small{display:block;font-family:var(--fc);letter-spacing:.22em;font-size:.58rem;color:var(--muted);text-transform:uppercase}
+.nav-links{display:flex;gap:.1rem;margin-left:auto}
+.nav-links a{font-family:var(--fc);text-transform:uppercase;letter-spacing:.13em;font-size:.82rem;font-weight:700;padding:.5rem .68rem;border-radius:9px;color:var(--muted);position:relative;transition:.25s}
+.nav-links a::after{content:"";position:absolute;left:.68rem;right:.68rem;bottom:.22rem;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--pink),var(--cyan));transform:scaleX(0);transform-origin:left;transition:transform .3s}
+.nav-links a:hover{color:var(--text)}
+.nav-links a:hover::after,.nav-links a[aria-current="true"]::after{transform:scaleX(1)}
+.nav-links a[aria-current="true"]{color:var(--text)}
+.nav-actions{display:flex;gap:.45rem;align-items:center;margin-left:.6rem}
+.nav-cta{margin-left:.4rem}
+.fav-wrap{position:relative}
+.fav-count{position:absolute;top:-5px;right:-5px;background:var(--pink);color:#fff;font-size:.6rem;font-family:var(--fc);font-weight:700;min-width:16px;height:16px;border-radius:99px;display:grid;place-items:center;padding:0 3px}
+.fav-pop{position:absolute;right:0;top:46px;min-width:250px;background:var(--bg2);border:1px solid var(--line2);border-radius:14px;padding:1rem;z-index:120;box-shadow:0 30px 70px -30px #000;display:grid;gap:.4rem}
+.fav-pop b{font-family:var(--fc);text-transform:uppercase;letter-spacing:.14em;font-size:.78rem}
+.fav-pop p{margin:.2rem 0;color:var(--muted);font-size:.8rem}
+.fav-pop a{display:flex;gap:.5rem;align-items:center;font-size:.84rem;color:var(--muted);padding:.25rem 0}
+.fav-pop a:hover{color:var(--text)}
+.burger{display:none;width:42px;height:38px;border-radius:11px;border:1px solid var(--line2);background:var(--panel);cursor:pointer;flex-direction:column;gap:5px;align-items:center;justify-content:center}
+.burger i{width:17px;height:2px;background:currentColor;border-radius:2px;transition:.3s}
+@media(max-width:1120px){
+  .nav-links{position:fixed;top:var(--nav-h);left:0;right:0;flex-direction:column;padding:1rem;background:color-mix(in srgb,var(--bg) 96%,transparent);backdrop-filter:blur(16px);border-bottom:1px solid var(--line);transform:translateY(-130%);transition:transform .4s;overflow:auto;max-height:calc(100vh - var(--nav-h))}
+  .nav-links.open{transform:none}
+  .nav-links a{padding:.85rem 1rem;font-size:.95rem}
+  .burger{display:flex}
+  .nav-cta{display:none}
+}
+/* HERO */
+.hero{position:relative;min-height:100svh;display:flex;align-items:center;overflow:hidden;isolation:isolate;padding:calc(var(--nav-h) + 4vh) 0 10vh;
+  --bg:#05060f;--text:#eef0ff;--muted:#9aa3c7;color:#eef0ff}
+.hero-sky{position:absolute;inset:0;z-index:-6;background:radial-gradient(120% 80% at 50% 100%,rgba(255,111,176,.35),transparent 60%),linear-gradient(180deg,#0a0620 0%,#1b0b3a 26%,#4a1160 46%,#a01a63 62%,#e8456a 72%,#ff9a4d 80%,#0d0820 80.5%,#07060f 100%)}
+.stars{position:absolute;inset:0 0 40% 0;z-index:-5;opacity:.85;background-image:radial-gradient(1.6px 1.6px at 12% 22%,#fff,transparent),radial-gradient(1.4px 1.4px at 28% 12%,#cfe9ff,transparent),radial-gradient(1.8px 1.8px at 46% 30%,#fff,transparent),radial-gradient(1.2px 1.2px at 63% 9%,#fff,transparent),radial-gradient(1.6px 1.6px at 78% 26%,#ffd6ee,transparent),radial-gradient(1.3px 1.3px at 90% 14%,#fff,transparent);animation:twinkle 5s ease-in-out infinite alternate}
+@keyframes twinkle{to{opacity:.45}}
+.hero-sun{position:absolute;left:50%;bottom:18vh;transform:translateX(-50%);width:min(46vw,500px);z-index:-4;filter:drop-shadow(0 0 60px rgba(255,90,160,.55))}
+.hero-sea{position:absolute;left:0;right:0;bottom:17.6vh;height:5vh;z-index:-3;background:linear-gradient(180deg,#3d0f4f,#12082b 60%,#08061a)}
+.hero-skyline{position:absolute;left:-2%;right:-2%;bottom:17vh;height:30vh;z-index:-2;width:104%}
+.hero-grid{position:absolute;left:-30%;right:-30%;bottom:-4vh;height:42vh;z-index:-1;transform:perspective(320px) rotateX(70deg);transform-origin:bottom center;background-image:linear-gradient(rgba(255,46,136,.55) 1.4px,transparent 1.4px),linear-gradient(90deg,rgba(34,217,255,.35) 1.4px,transparent 1.4px);background-size:100% 46px,46px 100%;animation:gridRun 2.8s linear infinite;mask-image:linear-gradient(to top,#000 6%,rgba(0,0,0,.35) 55%,transparent 92%)}
+@keyframes gridRun{to{background-position:0 46px,0 0}}
+.hero-vign{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(90% 70% at 50% 42%,transparent 40%,rgba(3,4,10,.8) 100%)}
+.hero-in{position:relative;z-index:2;width:min(100% - 40px,1220px);margin-inline:auto}
+.hero-kicker{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.2rem}
+.title-pre{font-family:var(--fc);text-transform:uppercase;letter-spacing:.5em;font-size:clamp(.8rem,2vw,1.2rem);color:#ffd9ea;text-shadow:0 0 22px rgba(255,46,136,.85);display:block}
+.title-vi{font-family:var(--fd);font-size:clamp(5.6rem,20vw,14rem);line-height:.82;background:linear-gradient(178deg,#fff2a8 4%,#ffcf5c 22%,#ff6fa8 52%,#ff2e88 68%,#a4166b 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 26px rgba(255,46,136,.5)) drop-shadow(0 12px 40px rgba(0,0,0,.7));margin:.2rem 0 .6rem}
+.hero-sub-lines{font-family:var(--fc);font-weight:700;text-transform:uppercase;letter-spacing:.3em;font-size:clamp(.95rem,2.4vw,1.4rem);color:#fff;margin:0 0 .8rem;text-shadow:0 0 24px rgba(34,217,255,.5)}
+.hero-sub{max-width:60ch;color:#e7dcf2;margin:0 0 1.6rem;text-shadow:0 2px 18px rgba(0,0,0,.75)}
+.hero-cta{display:flex;flex-wrap:wrap;gap:.7rem}
+.hero-meta{display:flex;flex-wrap:wrap;gap:1.2rem;align-items:center;margin-top:2rem;justify-content:space-between}
+.count-strip{display:flex;gap:.7rem;flex-wrap:wrap}
+.count-box{min-width:88px;padding:.7rem .9rem;border-radius:14px;border:1px solid var(--line2);background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.03));backdrop-filter:blur(8px);text-align:center}
+.count-box.wide{min-width:280px}
+.count-box b{display:block;font-family:var(--fd);font-size:clamp(1.5rem,4vw,2.2rem);line-height:1;color:#fff;text-shadow:0 0 22px rgba(34,217,255,.6)}
+.count-box span{font-family:var(--fc);text-transform:uppercase;letter-spacing:.2em;font-size:.62rem;color:#c9cfe8}
+.scroll-cue{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:.4rem;font-family:var(--fc);letter-spacing:.3em;text-transform:uppercase;font-size:.62rem;color:rgba(255,255,255,.6)}
+.scroll-cue i{width:1px;height:40px;background:linear-gradient(180deg,transparent,var(--cyan));animation:cue 2s ease-in-out infinite}
+@keyframes cue{50%{opacity:.3;transform:scaleY(.6)}}
+/* FACTS */
+.fact{display:flex;flex-direction:column;gap:.4rem;min-height:150px}
+.fact-ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(140deg,color-mix(in srgb,var(--pink) 25%,transparent),color-mix(in srgb,var(--cyan) 18%,transparent));border:1px solid var(--line2);color:var(--cyan);margin-bottom:.3rem}
+.fact .k{font-family:var(--fc);text-transform:uppercase;letter-spacing:.2em;font-size:.68rem;color:var(--pink)}
+.fact .v{font-family:var(--fc);font-weight:700;font-size:1.3rem;color:var(--text);line-height:1.2}
+.fvr-col{border-radius:var(--r);border:1px solid var(--line);padding:1.1rem;background:var(--panel2)}
+.fvr-col h3{margin-bottom:.8rem}
+.fvr-col ul{list-style:none;margin:0;padding:0;display:grid;gap:.6rem}
+.fvr-col li{font-size:.88rem;color:var(--muted);padding-left:1.1rem;position:relative}
+.fvr-col li::before{content:"";position:absolute;left:0;top:.5em;width:7px;height:7px;border-radius:50%}
+.c-ok li::before{background:var(--lime);box-shadow:0 0 10px var(--lime)}
+.c-rum li::before{background:var(--pink);box-shadow:0 0 10px var(--pink)}
+/* TRAILERS */
+.tr{padding:0;display:flex;flex-direction:column}
+.tr-thumb{position:relative;aspect-ratio:16/9;overflow:hidden;background:#0a0618;border-radius:var(--r) var(--r) 0 0}
+.thumb,.thumb-fallback,.tr-art{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.thumb-fallback{display:grid;place-items:center;background:linear-gradient(140deg,#2a0a3a,#6b1150);color:rgba(255,255,255,.5)}
+.tr-play{position:absolute;inset:0;display:grid;place-items:center;background:rgba(5,6,14,.25);border:0;cursor:pointer;transition:.3s}
+.tr-play i{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.5);backdrop-filter:blur(6px);color:#fff;transition:.3s}
+.tr:hover .tr-play i{transform:scale(1.12);background:var(--pink);border-color:var(--pink)}
+.tr-dur{position:absolute;right:10px;bottom:10px;font-size:.74rem;letter-spacing:.1em;padding:.2rem .5rem;border-radius:6px;background:rgba(5,6,14,.85);border:1px solid var(--line);color:#fff}
+.tr-body{padding:1.2rem 1.3rem 1.3rem;display:flex;flex-direction:column;gap:.55rem;flex:1}
+.tr-top{display:flex;justify-content:space-between;gap:.8rem;align-items:flex-start}
+.tr-top h3{font-family:var(--fc);font-weight:700;font-size:1.25rem;letter-spacing:.04em;text-transform:uppercase}
+.tr-date{display:flex;gap:.45rem;align-items:center;color:var(--muted);font-size:.8rem}
+.tr-desc{color:var(--muted);font-size:.9rem;margin:0;flex:1}
+.tr-actions{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-top:.4rem}
+.sharebar{display:inline-flex;gap:.35rem;align-items:center}
+.sharebar.compact .icon-btn{width:34px;height:34px;border-radius:10px}
+/* CHARACTERS */
+.char-card{display:flex;flex-direction:column;gap:.6rem;padding:1rem}
+.char-card.main{border-color:color-mix(in srgb,var(--pink) 40%,transparent)}
+.char-art{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:4/5}
+.char-role{position:absolute;left:8px;top:8px;z-index:2}
+.char-card h3{font-family:var(--fc);font-weight:700;font-size:1.25rem;letter-spacing:.05em;text-transform:uppercase}
+.char-card p{margin:0;color:var(--muted);font-size:.86rem;flex:1}
+.char-actions{display:flex;gap:.45rem;align-items:center;flex-wrap:wrap}
+.char-modal-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:1.2rem;align-items:start}
+@media(max-width:700px){.char-modal-grid{grid-template-columns:1fr}}
+.char-modal-art{border-radius:14px;overflow:hidden;aspect-ratio:4/5}
+/* LOCATIONS */
+.hscroll{display:flex;gap:1rem;overflow-x:auto;padding:.4rem .4rem 1.2rem;scroll-snap-type:x mandatory;scrollbar-color:var(--pink) transparent}
+.hscroll-item{flex:0 0 min(340px,82vw);scroll-snap-align:start}
+.loc-card{padding:0;display:flex;flex-direction:column;height:100%}
+.loc-art{aspect-ratio:16/10;position:relative}
+.loc-body{padding:1.1rem 1.2rem 1.2rem;display:flex;flex-direction:column;gap:.55rem;flex:1}
+.loc-body h3{font-family:var(--fc);font-weight:700;font-size:1.3rem;letter-spacing:.05em;text-transform:uppercase}
+.loc-body p{margin:0;color:var(--muted);font-size:.88rem;flex:1}
+.loc-modal-art{border-radius:14px;overflow:hidden;aspect-ratio:16/9;margin-bottom:.8rem}
+/* ART PLATES */
+.art{position:relative;overflow:hidden;border-radius:12px;isolation:isolate;width:100%;height:100%;min-height:150px}
+.art-frame{position:absolute;inset:0;transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+.art:hover .art-frame{transform:scale(1.06)}
+.art-svg{position:absolute;inset:0;width:100%;height:100%;z-index:2;color:var(--cyan)}
+.art-svg.full{z-index:1}
+.art-label{position:absolute;left:8px;bottom:8px;z-index:3;font-family:var(--fc);text-transform:uppercase;letter-spacing:.14em;font-size:.6rem;color:#dfe4ff;background:rgba(4,6,14,.65);border:1px solid var(--line);padding:.22rem .5rem;border-radius:7px;backdrop-filter:blur(4px)}
+.art-ocean{background:linear-gradient(180deg,#120a34 0%,#4b1166 38%,#c31f6c 60%,#ff7a4d 68%,#120a26 68.4%,#07050f 100%)}
+.art-beach{background:linear-gradient(180deg,#2b1155 0%,#7a1a6b 32%,#ff5f7e 52%,#ffb35c 62%,#ffd9a0 66%,#e6c089 100%)}
+.art-swamp{background:linear-gradient(180deg,#0b1a2a 0%,#1c4356 28%,#5f8f7c 52%,#c9b37a 66%,#2b3b28 68%,#111c12 100%)}
+.art-rain{background:linear-gradient(180deg,#05070f 0%,#131a35 45%,#2a1740 70%,#0a0a16 100%)}
+.art-keys{background:linear-gradient(180deg,#8fd6ff 0%,#bfe9ff 30%,#e9f7ff 46%,#1f8fc4 47%,#0b4f7a 100%)}
+.art-storm{background:linear-gradient(180deg,#0a0d18 0%,#1e2740 40%,#4a3a55 62%,#7d5a55 74%,#141018 100%)}
+.art-car{background:linear-gradient(160deg,#1a0b2b,#3b0f4e 45%,#0a0616 100%)}
+.art-jason{background:linear-gradient(140deg,#08243a,#2a2f7a 55%,#ff8a3d)}
+.art-lucia{background:linear-gradient(140deg,#2a0a3a,#6b1150 55%,#ff2e88)}
+.art-cal{background:linear-gradient(140deg,#123024,#2f6b4f 55%,#b6ff3d)}
+.art-boobie{background:linear-gradient(140deg,#301040,#7a1357 55%,#ffb020)}
+.art-drequan{background:linear-gradient(140deg,#0b2440,#155e75 55%,#22d9ff)}
+.art-realdimez{background:linear-gradient(140deg,#3b0f2e,#8b1e4b 55%,#ff6fb0)}
+.art-raul{background:linear-gradient(140deg,#26160b,#7c4a1d 55%,#ff8a3d)}
+.art-brian{background:linear-gradient(140deg,#101828,#334155 55%,#94a3b8)}
+.art-duo{background:linear-gradient(140deg,#2b0a3c,#7a1357 45%,#ff8a3d)}
+.art::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(180deg,rgba(255,255,255,.04) 0 1px,transparent 1px 3px);mix-blend-mode:soft-light}
+/* GALLERY */
+.filters{display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:1.4rem}
+.chip{padding:.45rem .9rem;border-radius:999px;border:1px solid var(--line2);background:var(--panel);cursor:pointer;font-family:var(--fc);text-transform:uppercase;letter-spacing:.13em;font-size:.76rem;font-weight:700;color:var(--muted);transition:.25s}
+.chip:hover{color:var(--text);border-color:var(--cyan)}
+.chip.on{background:linear-gradient(100deg,var(--pink),var(--purple));color:#fff;border-color:transparent}
+.masonry{columns:3 280px;column-gap:1rem}
+.masonry-item{break-inside:avoid;margin-bottom:1rem}
+.gal-btn{position:relative;display:block;width:100%;border:1px solid var(--line);border-radius:14px;overflow:hidden;padding:0;background:#0a0618;cursor:pointer;aspect-ratio:4/3}
+.gal-btn .thumb{position:static;aspect-ratio:4/3}
+.gal-cap{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:.8rem .9rem;background:linear-gradient(180deg,transparent,rgba(3,4,12,.92));display:flex;flex-direction:column;gap:.1rem;text-align:left}
+.gal-cap b{font-family:var(--fc);text-transform:uppercase;letter-spacing:.1em;font-size:.9rem;color:#fff}
+.gal-cap small{color:var(--muted);font-size:.7rem;font-family:var(--fc);letter-spacing:.14em;text-transform:uppercase}
+/* VIRAL */
+.viral{background:radial-gradient(80% 50% at 50% 0%,color-mix(in srgb,var(--purple) 12%,transparent),transparent 70%)}
+.viral-card{display:flex;flex-direction:column;gap:.55rem;align-items:flex-start}
+.viral-ic{width:48px;height:48px;border-radius:13px;display:grid;place-items:center;border:1px solid var(--line2);background:var(--panel);color:var(--text)}
+.viral-ic.sm{width:38px;height:38px;border-radius:11px}
+.p-reddit{color:#ff6b3d;border-color:rgba(255,107,61,.4)}
+.p-x{color:#e7ecff;border-color:rgba(231,236,255,.35)}
+[data-theme="light"] .p-x{color:#111}
+.p-youtube{color:#ff4d4d;border-color:rgba(255,77,77,.4)}
+.p-tiktok{color:#22d9ff;border-color:rgba(34,217,255,.4)}
+.p-instagram{color:#ff6fb0;border-color:rgba(255,111,176,.4)}
+.p-news{color:#ffb020;border-color:rgba(255,176,32,.4)}
+.viral-card h3{font-family:var(--fc);font-weight:700;font-size:1.2rem;letter-spacing:.05em;text-transform:uppercase}
+.viral-card p{margin:0;font-size:.88rem}
+.cat-card{display:flex;flex-direction:column;gap:.45rem;align-items:flex-start;transition:transform .3s,border-color .3s}
+.cat-card:hover{transform:translateY(-4px);border-color:var(--cyan)}
+.cat-card b{font-family:var(--fc);text-transform:uppercase;letter-spacing:.08em;font-size:1.02rem}
+.cat-go{margin-top:auto;display:flex;gap:.4rem;align-items:center;color:var(--cyan);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase}
+.cur-card{display:flex;gap:1rem;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.cur-card b{font-family:var(--fc);text-transform:uppercase;letter-spacing:.06em;font-size:1.05rem}
+.cur-card p{margin:.2rem 0 0}
+.note{border:1px dashed var(--line2);border-radius:12px;padding:.85rem 1rem;margin-top:1.4rem}
+/* NEWS */
+.news-card{display:flex;flex-direction:column;gap:.55rem;align-items:flex-start}
+.news-card h3{font-family:var(--fc);font-weight:700;font-size:1.18rem;letter-spacing:.04em;text-transform:uppercase;line-height:1.2}
+.news-card p{margin:0;font-size:.88rem;color:var(--muted)}
+/* COMMUNITY */
+.submit-card{display:flex;flex-direction:column;gap:.8rem}
+.fld{display:flex;flex-direction:column;gap:.35rem}
+.fld span{font-family:var(--fc);text-transform:uppercase;letter-spacing:.16em;font-size:.7rem;color:var(--muted)}
+.fld input,.fld select{padding:.7rem .9rem;border-radius:11px;border:1px solid var(--line2);background:var(--panel);color:var(--text)}
+.fld input[aria-invalid="true"]{border-color:var(--pink)}
+.err{color:var(--pink);font-size:.82rem;margin:0}
+.sub-list{list-style:none;margin:.6rem 0 0;padding:0;display:grid;gap:.7rem}
+.sub-list li{display:flex;gap:.8rem;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:12px;padding:.7rem .8rem}
+.sub-list b{font-family:var(--fc);letter-spacing:.04em;font-size:1rem}
+.sub-list p{margin:.1rem 0 0}
+/* FAQ */
+.faq{display:grid;gap:.7rem}
+.q{border:1px solid var(--line);border-radius:14px;background:var(--panel2);overflow:hidden;transition:.3s}
+.q.open{border-color:color-mix(in srgb,var(--cyan) 45%,transparent);background:color-mix(in srgb,var(--cyan) 5%,transparent)}
+.q button{width:100%;display:flex;gap:1rem;align-items:center;justify-content:space-between;padding:1rem 1.2rem;background:none;border:0;cursor:pointer;text-align:left;font-family:var(--fc);text-transform:uppercase;letter-spacing:.06em;font-size:1.02rem;font-weight:700}
+.q .pm{flex:0 0 26px;height:26px;border-radius:8px;border:1px solid var(--line2);position:relative;transition:.3s}
+.q .pm::before,.q .pm::after{content:"";position:absolute;background:var(--cyan);border-radius:2px;transition:.3s}
+.q .pm::before{width:12px;height:2px;top:11px;left:6px}
+.q .pm::after{width:2px;height:12px;top:6px;left:11px}
+.q.open .pm{transform:rotate(90deg);border-color:var(--cyan)}
+.q.open .pm::after{opacity:0}
+.a{overflow:hidden;transition:max-height .45s cubic-bezier(.2,.8,.2,1)}
+.a-in{padding:0 1.2rem 1.1rem;color:var(--muted);font-size:.92rem}
+.a-in p{margin:0 0 .5rem}
+.a-in a{color:var(--cyan);display:inline-flex;gap:.35rem;align-items:center;font-size:.82rem}
+/* MODALS */
+.modal-back{position:fixed;inset:0;z-index:150;background:rgba(3,4,10,.78);backdrop-filter:blur(8px);display:grid;place-items:center;padding:18px;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0}}
+.modal{background:var(--bg2);border:1px solid var(--line2);border-radius:20px;max-width:860px;width:100%;max-height:90vh;overflow:auto;padding:1.3rem;animation:pop .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes pop{from{opacity:0;transform:translateY(16px) scale(.97)}}
+.modal-head{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;margin-bottom:1rem}
+.modal-head h3{font-family:var(--fc);font-weight:700;font-size:1.3rem;letter-spacing:.05em;text-transform:uppercase}
+.video-frame{aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#000}
+.video-frame iframe{width:100%;height:100%;border:0}
+.video-alt{display:grid;gap:.9rem;justify-items:center;text-align:center;padding:.6rem 0}
+.video-alt .art{aspect-ratio:21/9;border-radius:14px}
+.modal-foot{margin-top:1rem}
+.lightbox{max-width:1000px}
+.lb-nav{display:flex;gap:.4rem}
+.lb-stage{border-radius:14px;overflow:hidden;aspect-ratio:16/9;background:#0a0618;position:relative}
+.lb-stage .thumb{position:static;height:100%}
+.lb-cap{margin:.8rem 0 0}
+.search-modal{max-width:640px;padding:0}
+.search-head{display:flex;gap:.7rem;align-items:center;padding:1rem 1.1rem;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg2);z-index:2}
+.search-head input{flex:1;background:none;border:0;outline:none;font-size:1.05rem;color:var(--text)}
+.search-body{padding:.9rem 1.1rem;display:grid;gap:.5rem;max-height:52vh;overflow:auto}
+.search-row{display:flex;gap:.8rem;align-items:center;text-align:left;border:1px solid var(--line);border-radius:12px;padding:.7rem .8rem;background:var(--panel2);cursor:pointer;transition:.25s}
+.search-row:hover{border-color:var(--cyan);transform:translateX(3px)}
+.sr-txt{display:flex;flex-direction:column;gap:.1rem;flex:1}
+.sr-txt b{font-family:var(--fc);letter-spacing:.04em;font-size:1rem;text-transform:uppercase}
+.sr-txt small{color:var(--muted);font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.search-foot{padding:.7rem 1.1rem;border-top:1px solid var(--line);margin:0}
+/* FOOTER */
+footer{border-top:1px solid var(--line);padding:3rem 0 2rem;background:linear-gradient(180deg,var(--panel2),transparent)}
+.f-grid{display:grid;grid-template-columns:1.4fr repeat(3,minmax(140px,1fr));gap:1.6rem}
+@media(max-width:860px){.f-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.f-grid{grid-template-columns:1fr}}
+.f-col h4{font-family:var(--fc);text-transform:uppercase;letter-spacing:.2em;font-size:.76rem;color:var(--pink);margin:0 0 .8rem}
+.f-col a{display:block;padding:.24rem 0;color:var(--muted);font-size:.9rem;transition:.25s}
+.f-col a:hover{color:var(--text);transform:translateX(3px)}
+.disclaimer{border:1px dashed var(--line2);border-radius:12px;padding:.9rem 1.1rem;color:var(--muted);font-size:.8rem;margin-top:1.6rem}
+.f-bot{margin-top:1.4rem;padding-top:1.2rem;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;color:var(--muted);font-size:.8rem}
+/* MISC */
+.top-fab{position:fixed;right:18px;bottom:18px;z-index:100;width:46px;height:46px;border-radius:14px;border:1px solid var(--line2);background:color-mix(in srgb,var(--bg2) 85%,transparent);backdrop-filter:blur(8px);display:grid;place-items:center;cursor:pointer;color:var(--text)}
+.top-fab:hover{border-color:var(--pink)}
+.toast-host{position:fixed;left:18px;bottom:18px;z-index:200;display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
+.toast-host div{background:color-mix(in srgb,var(--bg2) 95%,transparent);border:1px solid var(--line2);border-left:3px solid var(--cyan);padding:.8rem 1rem;border-radius:12px;font-size:.86rem;box-shadow:0 20px 50px -20px #000;animation:toastIn .35s cubic-bezier(.2,.8,.2,1)}
+@keyframes toastIn{from{opacity:0;transform:translateY(14px)}}
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.001s!important;animation-iteration-count:1!important;transition-duration:.001s!important}
+  html{scroll-behavior:auto}
+  .reveal{opacity:1;transform:none}
+}
+`;
